@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+*_markdown/
+pdfmd_output/
+/NIST SP 800-30.pdf
