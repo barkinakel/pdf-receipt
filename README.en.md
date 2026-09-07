@@ -97,28 +97,64 @@ and a summary is printed at the end.
 
 ## Quality report
 
-After every conversion the tool compares the PDF text layer with the Markdown it
-produced and prints a one-line summary:
+After every conversion the tool prints a concise Quality Report v2 summary. The
+numbers below are illustrative, not a reproduced document measurement:
 
 ```text
-Quality: 99.6% word coverage | 55 tables, 7 images
+Quality Report v2 | Extraction: transfer 98.0% (980/1000); unexplained 10; order risks 2 | Serialization: transfer 99.0% (990/1000); unexpected 5; order risks 1
+Structure: not evaluated in this milestone.
 ```
 
-The details go into `<name>_report.md`: how many words carried over, where the
-missing ones ended up (inside a figure, in a page header, glued to a footnote
-number), the pages with the most unexplained loss, and what Markdown could not
-carry for that document.
+The details go into `<name>_report.md`. Extraction (PDF text layer to
+DoclingDocument) and serialization (DoclingDocument to visible Markdown) have
+separate token counts, rates, accounting identities, and occurrence-level issue
+samples. This is text-layer agreement evidence, not verified document accuracy.
+Heading, list, table, link, and artifact integrity is not evaluated yet.
 
 It earns its keep on scanned documents. Converting a PDF without a text layer
 using `--fast` silently produces an empty file, and the report says so:
 
 ```text
-Quality: the PDF has no text layer (scanned document), coverage cannot be measured
-WARNING: 2 pages have no text layer and --fast turned OCR off; those pages may
-have come out empty. Try again with --quality.
+Quality Report v2 | Extraction: transfer n/a (no source tokens); unexplained 0; order risks 0 | Serialization: transfer n/a (no source tokens); unexpected 0; order risks 0
+Structure: not evaluated in this milestone.
+WARNING: 2 pages without a text layer are unverified; --fast turned OCR off, so they may have come out empty. Coverage cannot be measured. Try again with --quality.
 ```
 
 Pass `--no-report` if you do not want it.
+
+The counter now includes Unicode letters and numbers of every length, so short
+words and table values such as `A`, `ve`, `7`, and `42` are not silently
+dropped. Unicode compatibility normalization makes ligatures such as `ﬁ`
+compare equal to their ordinary letters.
+
+Case handling has an explicit document-level policy. The default `unicode`
+profile uses locale-free Unicode case folding, so English `RISK`/`risk`,
+`TITLE`/`title`, and `I`/`i` match. The token model also supports an explicitly
+selected `turkic` profile, where `İ`/`i` and `I`/`ı` are separate pairs. The
+converter does not guess a document's language: no single locale-free string
+can satisfy both interpretations of `I` safely.
+
+A same-line compound such as `risk-based` keeps its hyphen. A hyphen at a line
+ending is ambiguous because it can also be a wrapped compound. Tokens retain
+every raw separator span, a conservative hyphen-preserving form, and independent
+keep/join choices. Ordered alignment only joins a candidate when neighboring
+tokens support it and records that decision separately from an ordinary match.
+
+The analysis path now builds two occurrence-based results: PDF text layer to
+DoclingDocument (extraction), then DoclingDocument to visible Markdown
+(serialization). Alignment is page-partitioned and uses a bounded 64-token LCS
+window, retains source/provenance evidence, reports possible reading-order moves
+as risks, and never reuses one occurrence. Multi-entry Docling provenance is
+mapped by token `charspan`; ambiguous pages remain unknown. Figure and furniture
+explanations require overlap between retained PDF character boxes and the
+Docling region, rather than page-and-text equality alone. Visible URL and email
+autolinks are tokenized while actual HTML tags remain syntax. V2 exposes
+accepted transfer, accounted loss, unexplained loss, unexpected additions,
+substitutions, and order risks without folding explanations into the transfer
+rate. Zero denominators render as `n/a`. The old bag-of-words percentage remains
+available only as `legacy_coverage` diagnostic history. The full operation and
+metric contract, limits, and synthetic measurements are in
+[`docs/ALIGNMENT.md`](docs/ALIGNMENT.md).
 
 ## Which profile?
 
@@ -143,8 +179,10 @@ combined with either profile.
 
 ## What survives and what does not
 
-Measured on a 95-page NIST document: **99.6%** of the words in the PDF text
-layer made it into the Markdown.
+The historical **99.6%** measurement on the 95-page NIST document is a legacy
+Quality Report v1 coverage result. It used the old counter that omitted tokens
+shorter than three characters and is not verified conversion accuracy. The
+document will be remeasured after Quality Report v2 is complete.
 
 Kept: heading levels, paragraph and list structure, table data, the position of
 images within the text, footnotes. Page headers and footers are dropped on
@@ -169,8 +207,11 @@ src/pdftomd/
 ├── __main__.py        entry point for `python -m pdftomd`
 ├── cli.py             arguments, progress messages, exit codes
 ├── converter.py       the Docling conversion and the output paths
-└── quality_report.py  compares the PDF with the Markdown
+├── quality_report.py  collects evidence and renders Quality Report v2
+├── quality_metrics.py per-stage v2 counts, rates, and accounting identities
+└── alignment.py       bounded two-stage occurrence alignment
 tests/                 one test file per module
+tests/fixtures/        PDF regression corpus and machine-checkable facts
 docs/                  notes and open work
 ```
 
@@ -182,3 +223,7 @@ installation step is needed.
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s tests -t .
 ```
+
+This fast command skips the live Docling corpus test. After the initial setup
+has cached all models, the fully offline integration instructions are in
+[`tests/fixtures/README.md`](tests/fixtures/README.md).

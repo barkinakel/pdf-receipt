@@ -1,0 +1,12 @@
+{
+  "name": "scanned-page",
+  "pdf": "scanned_page.pdf",
+  "features": ["scanned_page"],
+  "facts": [
+    {
+      "id": "quality-ocr-text",
+      "type": "contains",
+      "text": "SCANNED PAGE"
+    }
+  ]
+}

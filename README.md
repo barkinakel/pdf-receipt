@@ -97,28 +97,64 @@ işlenmeye devam eder, sonunda özet yazılır.
 
 ## Kalite raporu
 
-Her dönüşümün sonunda araç, PDF'in metin katmanını ürettiği Markdown ile
-karşılaştırır ve tek satırlık bir özet yazar:
+Her dönüşümün sonunda araç kısa bir Quality Report v2 özeti yazar. Aşağıdaki
+sayılar yalnızca örnektir; yeniden üretilmiş bir belge ölçümü değildir:
 
 ```text
-Quality: 99.6% word coverage | 55 tables, 7 images
+Quality Report v2 | Extraction: transfer 98.0% (980/1000); unexplained 10; order risks 2 | Serialization: transfer 99.0% (990/1000); unexpected 5; order risks 1
+Structure: not evaluated in this milestone.
 ```
 
-Ayrıntısı `<ad>_report.md` dosyasına yazılır: kaç kelimenin geçtiği, geçmeyenlerin
-nerede kaldığı (şeklin içinde, sayfa üstbilgisinde, dipnot numarasına yapışık),
-açıklanamayan kaybın en çok olduğu sayfalar ve o belgede Markdown'ın taşıyamadığı
-şeyler.
+Ayrıntısı `<ad>_report.md` dosyasına yazılır. Çıkarım (PDF metin katmanından
+DoclingDocument'a) ile serileştirme (DoclingDocument'tan görünür Markdown'a)
+ayrı token sayıları, oranlar, muhasebe eşitlikleri ve oluşum tabanlı sorun
+örnekleri taşır. Bu, metin katmanı uyum kanıtıdır; doğrulanmış belge doğruluğu
+değildir. Başlık, liste, tablo, bağlantı ve çıktı dosyası bütünlüğü henüz
+değerlendirilmez.
 
 En çok işe yaradığı yer taranmış belgeler. Metin katmanı olmayan bir PDF'i
 `--fast` ile çevirirsen çıktı sessizce boş kalır; rapor bunu söyler:
 
 ```text
-Quality: the PDF has no text layer (scanned document), coverage cannot be measured
-WARNING: 2 pages have no text layer and --fast turned OCR off; those pages may
-have come out empty. Try again with --quality.
+Quality Report v2 | Extraction: transfer n/a (no source tokens); unexplained 0; order risks 0 | Serialization: transfer n/a (no source tokens); unexpected 0; order risks 0
+Structure: not evaluated in this milestone.
+WARNING: 2 pages without a text layer are unverified; --fast turned OCR off, so they may have come out empty. Coverage cannot be measured. Try again with --quality.
 ```
 
 Rapor istemezsen `--no-report` ver.
+
+Sayaç artık her uzunluktaki Unicode harf ve sayıyı kapsar; `A`, `ve`, `7` ve
+`42` gibi kısa sözcükler ve tablo değerleri sessizce atılmaz. Unicode uyumluluk
+normalizasyonu `ﬁ` gibi ligatürleri düz harflerle eşleştirir.
+
+Büyük-küçük harf işleminin açık bir belge profili vardır. Varsayılan `unicode`
+profili dilden bağımsız Unicode harf katlaması uygular; İngilizce `RISK`/`risk`,
+`TITLE`/`title` ve `I`/`i` eşleşir. Token modeli, açıkça seçilen bir `turkic`
+profilini de destekler; bu profilde `İ`/`i` ile `I`/`ı` ayrı çiftlerdir. Araç
+belgenin dilini tahmin etmez: tek bir dilden bağımsız metin biçimi `I` harfinin
+iki yorumunu da güvenle karşılayamaz.
+
+`risk-based` gibi aynı satırdaki gerçek bileşik tireyi korur. Satır sonundaki
+tire ise sözcük bölünmesi de, satıra sığmayan gerçek bir bileşik de olabilir.
+Token her ham ayırıcı aralığını, tireyi koruyan temkinli biçimi ve her ayırıcı
+için bağımsız koru/birleştir seçeneğini saklar. Sıralı hizalama yalnızca komşu
+token'lar desteklediğinde birleştirir ve bu kararı normal eşleşmeden ayrı tutar.
+
+Analiz yolu artık oluşum tabanlı iki ayrı sonuç kurar: PDF metin katmanından
+DoclingDocument'a (çıkarım), ardından DoclingDocument'tan görünür Markdown'a
+(serileştirme). Hizalama sayfa bölümlüdür ve 64 token'lık sınırlı bir LCS
+penceresi kullanır; kaynak/provenans kanıtını korur, olası okuma sırası
+taşımalarını risk olarak gösterir ve tek oluşumu yeniden kullanmaz. Birden çok
+Docling provenans girdisi token `charspan` değerleriyle eşlenir; belirsiz sayfa
+bilgisi tahmin edilmez. Şekil ve üstbilgi/altbilgi açıklamaları yalnızca PDF
+karakter kutuları Docling bölgesiyle örtüşüyorsa kabul edilir. Görünür URL ve
+e-posta otomatik bağlantıları tokenlaştırılırken gerçek HTML etiketleri sözdizimi
+olarak maskelenir. V2; kabul edilen aktarımı, açıklanan kaybı, açıklanamayan
+kaybı, beklenmeyen eklemeleri, ikameleri ve sıra risklerini aktarım oranına
+karıştırmadan gösterir. Sıfır payda `n/a` olarak yazılır. Eski sözcük torbası
+yüzdesi yalnızca `legacy_coverage` tanı geçmişi olarak kalır. İşlem ve metrik
+sözleşmesi, sınırlar ve sentetik ölçümler
+[`docs/ALIGNMENT.md`](docs/ALIGNMENT.md) içinde açıklanır.
 
 ## Hangi profil?
 
@@ -142,8 +178,10 @@ devam eder. Fast veya quality ile birlikte kullanılabilir.
 
 ## Ne korunur, ne kaybolur
 
-95 sayfalık bir NIST dokümanıyla ölçüldü: PDF'in metin katmanındaki kelimelerin
-**%99,6'sı** Markdown'da yerini aldı.
+95 sayfalık NIST dokümanında eski Quality Report v1 ile ölçülen **%99,6** değeri
+tarihsel bir kapsama ölçümüdür; üç karakterden kısa sözcükleri atlayan eski
+sayaçla üretildi ve doğrulanmış dönüşüm doğruluğu değildir. Yeni sayaç sonrası
+bu belgenin sonucu Quality Report v2 tamamlandığında yeniden ölçülecek.
 
 Korunan: başlık düzeyleri, paragraf ve liste yapısı, tablo verisi, görsellerin
 metin içindeki konumu, dipnotlar. Sayfa üstbilgi/altbilgileri kasten atılır.
@@ -166,8 +204,11 @@ src/pdftomd/
 ├── __main__.py        `python -m pdftomd` girişi
 ├── cli.py             argümanlar, ilerleme mesajları, çıkış kodları
 ├── converter.py       Docling ile dönüşüm ve çıktı yolları
-└── quality_report.py  PDF ile Markdown'ı karşılaştıran kalite ölçümü
+├── quality_report.py  kanıt toplama ve Quality Report v2 üretimi
+├── quality_metrics.py aşama başına v2 sayaçları, oranları ve muhasebe eşitlikleri
+└── alignment.py       sınırlı iki aşamalı oluşum hizalaması
 tests/                 her modül için ayrı test dosyası
+tests/fixtures/        PDF regresyon corpus'u ve makinece denetlenen gerçekler
 docs/                  notlar ve yapılacaklar (İngilizce)
 ```
 
@@ -179,3 +220,7 @@ docs/                  notlar ve yapılacaklar (İngilizce)
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s tests -t .
 ```
+
+Bu hızlı komut canlı Docling corpus testini atlar. Modeller ilk kurulumda önbelleğe
+alındıktan sonra tamamen çevrimdışı entegrasyon çalıştırma adımları
+[`tests/fixtures/README.md`](tests/fixtures/README.md) içinde.

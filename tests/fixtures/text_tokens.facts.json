@@ -1,0 +1,46 @@
+{
+  "name": "text-tokens",
+  "pdf": "text_tokens.pdf",
+  "features": [
+    "turkish_dotted_dotless_i",
+    "unicode_ligatures",
+    "line_end_hyphenation",
+    "hyphenated_compound",
+    "repeated_same_page",
+    "repeated_across_pages",
+    "short_tokens"
+  ],
+  "facts": [
+    {
+      "id": "turkish-forms",
+      "type": "contains",
+      "text": "İ I i ı"
+    },
+    {
+      "id": "ligature-presentation-or-expanded",
+      "type": "one_of",
+      "texts": ["ﬁ ﬂ ﬀ", "fi fl ff"]
+    },
+    {
+      "id": "short-and-numeric-tokens",
+      "type": "contains",
+      "text": "A ve 7 42"
+    },
+    {
+      "id": "real-compound",
+      "type": "contains",
+      "text": "risk-based"
+    },
+    {
+      "id": "line-end-hyphenation",
+      "type": "contains",
+      "text": "hyphenation joins conservatively"
+    },
+    {
+      "id": "same-and-cross-page-repeat",
+      "type": "occurrences",
+      "text": "echo",
+      "count": 3
+    }
+  ]
+}

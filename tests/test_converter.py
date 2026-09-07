@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from pdftomd import converter
+from pdftomd import quality_report as qr
 
 
 def output_paths(root: Path, stem: str = "source") -> converter.OutputPaths:
@@ -223,6 +224,60 @@ class ExportTests(unittest.TestCase):
 
             report_mock.assert_not_called()
             self.assertIsNone(result.report_summary)
+
+    def test_write_quality_report_builds_integrated_two_stage_alignment(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir).resolve()
+            output = output_paths(root)
+            output.directory.mkdir(parents=True)
+            output.markdown.write_text("visible", encoding="utf-8")
+            provenance = SimpleNamespace(page_no=1, charspan=(0, 7))
+            body = SimpleNamespace(
+                text="visible",
+                self_ref="#/texts/1",
+                prov=(provenance,),
+                content_layer=SimpleNamespace(value="body"),
+            )
+            document = SimpleNamespace(
+                pages={1: object()},
+                tables=(),
+                pictures=(),
+                texts=(body,),
+                iterate_items=lambda: iter(((body, 0),)),
+            )
+
+            with patch(
+                "pdftomd.converter.quality_report.read_pdf_text",
+                return_value=qr.PdfText("source.pdf", ("visible",)),
+            ):
+                summary = converter.write_quality_report(
+                    root / "source.pdf",
+                    output.markdown,
+                    document,
+                    output,
+                    "quality",
+                )
+
+            self.assertEqual(
+                summary,
+                "Quality Report v2 | Extraction: transfer 100.0% (1/1);"
+                " unexplained 0; order risks 0 | Serialization: transfer 100.0%"
+                " (1/1); unexpected 0; order risks 0\n"
+                "Structure: not evaluated in this milestone.",
+            )
+            self.assertTrue(output.report.is_file())
+            described = qr.describe_document(document)
+            report = qr.analyze(
+                qr.PdfText("source.pdf", ("visible",)),
+                "visible",
+                described,
+                "quality",
+            )
+            self.assertIsNotNone(report.alignments)
+            self.assertEqual(
+                report.alignments.extraction.operations[0].type.value,
+                "match",
+            )
 
 
 if __name__ == "__main__":

@@ -182,7 +182,7 @@ def write_quality_report(
     output: OutputPaths,
     profile: Profile,
 ) -> str:
-    """Measure what the conversion lost, save the report, return the summary."""
+    """Write the two-stage v2 evidence report and return its console summary."""
     structure = quality_report.describe_document(document)
     pdf_text = quality_report.read_pdf_text(pdf_path, structure.figures)
     report = quality_report.analyze(

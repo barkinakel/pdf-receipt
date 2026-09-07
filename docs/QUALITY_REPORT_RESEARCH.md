@@ -101,18 +101,22 @@ useful checks should be implemented locally and tested directly.
 
 ## Recommended approach
 
-1. Implement the dependency-free runtime improvements already listed in
-   `docs/TODO.md`: normalization, ordered alignment, additions and deletions,
-   explained coverage, context, and artifact integrity.
-2. Add a small curated local fixture set inspired by olmOCR-Bench. Each PDF gets
-   explicit pass/fail facts for text presence, unwanted header absence, reading
-   order, table neighbors, and image links.
-3. Run Docling against DP-Bench or OmniDocBench separately during development to
+1. First add a small curated local fixture set inspired by olmOCR-Bench. Each
+   PDF gets explicit pass/fail facts for text presence, unwanted header absence,
+   reading order, table neighbors, and image links. These facts define the
+   contract before the runtime metric changes.
+2. Implement the dependency-free two-stage runtime improvements listed in
+   `docs/TODO.md`: provenance-preserving tokenization, normalization, ordered
+   alignment, additions and deletions, occurrence-based explanations, context,
+   and artifact integrity.
+3. Gate the completed report on the local fact corpus and the NIST document,
+   including long-document time and memory measurements. The previous NIST
+   coverage score is diagnostic history, not ground truth.
+4. Run Docling against DP-Bench or OmniDocBench separately during development to
    measure text, reading order, table, and heading regressions. Do not install
    those benchmark dependencies for end users.
-4. Consider a small `docling-metrics` component only after the local metrics are
+5. Consider a small `docling-metrics` component only after the local metrics are
    stable and its installation cost and Python 3.12 compatibility are verified.
-5. Keep scanned pages explicitly "unverified" without ground truth. OCR
+6. Keep scanned pages explicitly "unverified" without ground truth. OCR
    confidence, a second OCR engine, or an LLM judge may identify risk, but none
    should be presented as guaranteed accuracy.
-

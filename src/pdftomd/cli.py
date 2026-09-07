@@ -79,8 +79,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         dest="report",
         action="store_false",
         help=(
-            "Skips the quality report (<name>_report.md). The report compares "
-            "the PDF text layer with the Markdown and lists what went missing."
+            "Skips Quality Report v2 (<name>_report.md), which reports PDF-to-"
+            "Docling extraction separately from Docling-to-Markdown serialization."
         ),
     )
     parser.set_defaults(report=True)

@@ -1,0 +1,113 @@
+{
+  "name": "structure-layout",
+  "pdf": "structure_layout.pdf",
+  "features": [
+    "numeric_table_cells",
+    "headings",
+    "lists",
+    "links",
+    "tables",
+    "images",
+    "multi_column_order",
+    "decorative_drop_cap"
+  ],
+  "facts": [
+    {
+      "id": "main-heading-level",
+      "type": "heading",
+      "level": 2,
+      "text": "Fixture Structure"
+    },
+    {
+      "id": "list-items",
+      "type": "list_items",
+      "items": ["first retained list item", "second retained list item"]
+    },
+    {
+      "id": "numeric-table-neighbors",
+      "type": "table_cells",
+      "cells": ["Count", "7", "42"]
+    },
+    {
+      "id": "source-link",
+      "type": "known_limitation",
+      "issue": "PDF link annotation is currently flattened into repeated table text",
+      "source_target": "https://example.com/fixture",
+      "accepted_outcomes": [
+        {
+          "name": "link-preserved",
+          "facts": [
+            {
+              "id": "markdown-link-target",
+              "type": "link_target",
+              "target": "https://example.com/fixture"
+            }
+          ]
+        },
+        {
+          "name": "known-link-loss",
+          "facts": [
+            {
+              "id": "missing-markdown-link",
+              "type": "no_link_target",
+              "target": "https://example.com/fixture"
+            },
+            {
+              "id": "url-repeated-in-table-row",
+              "type": "table_row_occurrences",
+              "text": "https://example.com/fixture",
+              "count": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exported-image-artifact",
+      "type": "valid_image_links",
+      "minimum": 1
+    },
+    {
+      "id": "column-reading-order",
+      "type": "ordered",
+      "phrases": [
+        "Left column first",
+        "Left column second",
+        "Right column third",
+        "Right column fourth"
+      ]
+    },
+    {
+      "id": "drop-cap",
+      "type": "known_limitation",
+      "issue": "Decorative drop cap may be detached from the following word",
+      "accepted_outcomes": [
+        {
+          "name": "drop-cap-preserved",
+          "facts": [
+            {
+              "id": "complete-opening",
+              "type": "contains",
+              "text": "This chapter begins with a decorative drop cap"
+            }
+          ]
+        },
+        {
+          "name": "known-detached-drop-cap",
+          "facts": [
+            {
+              "id": "detached-cap",
+              "type": "contains",
+              "text": "\nT\n"
+            },
+            {
+              "id": "remaining-opening",
+              "type": "contains",
+              "text": "his chapter begins with a decorative drop cap"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

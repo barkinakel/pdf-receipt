@@ -1,101 +1,334 @@
-# Next up
+# Development plan
 
-Work that has not been scheduled or decided yet. Delete an entry once it is done.
+GitHub publishing is deferred. Development continues in the existing local Git
+repository. The baseline is commit `569a7a0`; all 59 unit tests pass.
 
-## 1. `--html-tables` — tables with merged cells
+This plan is ordered. Finish and verify one milestone before starting the next
+one. Quality Report v2 is the first product goal because the current
+bag-of-words score can overstate coverage: it ignores one- and two-character
+tokens, reuses the complete Markdown word counter for every PDF page, and does
+not consume page-specific figure/furniture occurrences.
 
-Markdown pipe tables have no `colspan`, so a header spanning three columns is
-repeated as `| Provided To | Provided To | Provided To |`. The real structure
-sits in the `.json` file as `colspan="3"`, so no data is actually lost.
+## Progress
 
-The fix would be to write those tables into the Markdown as HTML. Docling has a
-`table_serializer` hook (`docling_core.transforms.serializer.markdown`), and
-`TableItem.export_to_html(doc)` already produces merged cells and the table
-caption (`<caption>`) correctly. Roughly 25 lines of work.
+Current state as of the Quality Report v2 metrics pass.
 
-Suggested behaviour: mixed — only tables that actually contain merged cells
-become HTML, ordinary tables stay pipe tables. Off by default, enabled by a flag.
+| Milestone | Sections | State |
+|---|---|---|
+| A: fixture foundation and tokenization | 1-2 | done |
+| B: ordered two-stage alignment | 3 | done |
+| B: Quality Report v2 metrics and explanations | 4 | done |
+| C: structural integrity and full v2 gate | 5-6 | not started |
+| D and later | 7-10 | not started |
 
-**Decision: not doing it for now.** Measurements (NIST SP 800-30, 95 pages):
+Landed for sections 1-4:
 
-- 27 of the 55 tables contain merged cells, so half of the document's tables
-  would turn into HTML blocks. That is not a rare exception.
-- None of the 1211 table cells contain a line break, so HTML would **not** fix
-  the real annoyance — bullet lists inside a cell collapsing into
-  `- Outsider - Insider`. That information is already gone at extraction time.
-- The current repetition is not a loss of information: every column carries its
-  own header, which on the machine side (search, feeding an LLM) is more useful
-  than a merged cell.
+- `tests/fixtures/` fact-based PDF corpus plus `tests/fixture_harness.py`, with
+  live Docling checks isolated in `tests/integration/` behind
+  `PDFTOMD_RUN_DOCLING_FIXTURES=1`.
+- Provenance-preserving tokenization in `src/pdftomd/quality_report.py`, with the
+  `unicode`/`turkic` case profiles and the cautious line-end-hyphen model.
+- `src/pdftomd/alignment.py`: page-partitioned, bounded-LCS two-stage occurrence
+  alignment producing extraction and serialization results.
+- `src/pdftomd/quality_metrics.py`: `StageMetrics` with enforced source and target
+  accounting identities, `None` for zero denominators, separate substitution and
+  reading-order-risk categories, and bounded representative issue samples.
+- `report_version = 2`, the two-stage console summary and Markdown report,
+  `legacy_coverage` with its documented `coverage` alias, and the OCR-only
+  unverified-page wording.
+- `docs/ALIGNMENT.md` plus README updates in both languages.
 
-The only gain is visual: the merged header spans like it does in the PDF, and
-the table caption sticks to the table. The cost is an unreadable `.md` source
-and tables that vanish entirely in tools that strip HTML.
+Verification at this point: `.venv\Scripts\python.exe -m unittest discover -s tests -t .`
+reports 160 tests OK with 1 skip (the live Docling integration test, which needs
+cached models and the environment variable above). `git diff --check` is clean.
 
-If it comes up again: worth it when the Markdown is meant to be shown or printed
-as a document, not worth it for personal reading and lookup.
+Open before section 5 starts:
 
-## 2. Image resolution
+- The offline fixture integration run has not been executed against cached models.
+- The NIST document has not been remeasured under v2; the README still carries the
+  v1 `99.6%` figure explicitly labelled as legacy diagnostic history.
 
-Extracted images are 72 DPI (`images_scale=1.0`). The figures in the NIST
-document came out at 433x214 pixels, which is blurry when enlarged.
-`images_scale=2.0` gives 144 DPI, `3.0` gives 216 DPI, at the cost of larger
-files and a slower conversion.
+## Working contract
 
-## 3. Lost drop caps
+- Optimize for local, offline PDF conversion with useful Markdown, Docling JSON,
+  referenced image artifacts, and honest quality evidence.
+- Treat a PDF text layer as a comparison source, not guaranteed ground truth.
+  Scanned pages without independent ground truth must remain `unverified`.
+- Separate extraction quality from serialization quality:
 
-The large decorative letter at the start of a chapter disappears:
-`This chapter` becomes `his chapter`. It happens at a few chapter openings in
-the NIST document. Why Docling does not keep that letter (is it treated as a
-picture, or as a separate text block?) has not been investigated. Find the cause
-first, then decide whether to fix it.
+  ```text
+  PDF text layer -> DoclingDocument -> Markdown and artifacts
+   extraction quality                serialization integrity
+  ```
 
-## 4. A real `--formula` test
+- Do not add a runtime dependency for Quality Report v2 unless the standard
+  library cannot meet measured correctness or performance requirements.
+- Preserve the default conversion behavior unless a milestone explicitly adds
+  an opt-in flag.
+- Prefer small fact-based regression assertions over exact full-file Markdown
+  snapshots.
+- A milestone is complete only when its focused tests and the full unit suite
+  pass, relevant documentation is updated, and `git diff` contains no unrelated
+  changes.
+- If local commits are authorized, create one focused commit per completed
+  milestone. Do not publish or push anything until GitHub work is resumed.
 
-Unit tests cover the flag and the pipeline wiring, but a live conversion has
-never run: about 209 MB of the 631 MB CodeFormulaV2 model has been downloaded,
-the rest is still pending. A ready test file lives at
-`scratchpad/smoke/input/formulas.pdf` (inside the session folder, so it may be
-gone — it can be regenerated).
+## 1. Regression contract and fixture foundation
 
-## 5. Skip already converted files — possible follow-up
+Create the evidence needed before changing the quality algorithm.
 
-## 6. Quality Report v2
+- Add a small checked-in fixture corpus covering:
+  - Turkish characters, including dotted and dotless I
+  - ligatures such as `ﬁ`, `ﬂ`, and `ﬀ`
+  - true line-end hyphenation and a real hyphenated compound
+  - repeated words on one page and across pages
+  - one- and two-character words and numeric table cells
+  - headings, lists, links, tables, and images
+  - multi-column reading order
+  - a scanned page
+  - a decorative drop cap
+- Store explicit facts next to each fixture, such as required/forbidden text,
+  ordered phrases, heading levels, table-cell relationships, and valid image
+  links. Do not use an entire generated Markdown file as the only oracle.
+- Keep fixture generation reproducible without adding a runtime dependency. If
+  a development-only generator is used, retain its source or document exactly
+  how each fixture was made.
+- Separate fast unit tests from live Docling integration tests. The integration
+  corpus must run without downloading models once the documented setup is
+  complete.
 
-External tools, benchmarks, and the adoption decision are recorded in
-[QUALITY_REPORT_RESEARCH.md](QUALITY_REPORT_RESEARCH.md).
+Acceptance:
 
-Replace the single bag-of-words score with a two-stage report:
+- The existing 59 tests still pass.
+- The fixture harness reports the fixture name and failed fact clearly.
+- At least one regression test demonstrates each known Quality Report v1 bug:
+  short tokens omitted, a repeated Markdown occurrence reused across PDF pages,
+  and figure/furniture text incorrectly explaining occurrences on another page.
 
-```text
-PDF text layer -> DoclingDocument -> Markdown
- extraction quality                serialization quality
-```
+## 2. Provenance-preserving tokenization and normalization
 
-Phase 1 should add no dependencies:
+Replace plain `Counter` tokens with a token model that retains enough evidence
+to explain every comparison result.
 
-- Normalize Unicode, ligatures, punctuation variants, and words hyphenated
-  across line breaks before comparing.
-- Align ordered tokens and retain PDF page provenance. This must count repeated
-  words correctly and report deletions, substitutions, and unexpected additions.
-- Show separate exact-transfer, accounted-for, unexplained-loss, and
-  unexpected-addition rates. Expected figure text, page furniture, and glued
-  footnote numbers should improve accounted-for coverage without hiding the raw
-  transfer rate.
-- Include surrounding text with each unexplained sample instead of listing an
-  isolated word only.
-- Compare Docling structure with the serialized Markdown: heading/list/table
-  counts, table cell text, image link count, link targets, artifact existence,
-  non-empty files, and decodable image dimensions.
-- Preserve the current console summary and report path while expanding the
-  detailed report. Keep old fields long enough for compatibility with tests.
+- Each token should retain its raw text, normalized form, page number, source
+  span, and Docling block/provenance identity when available.
+- Include Unicode letters and numbers of every length. Do not silently discard
+  one- and two-character words or numeric cells.
+- Apply compatibility normalization suitable for ligatures, then case handling,
+  with explicit tests for Turkish `İ`, `I`, `i`, and `ı`.
+- Normalize quote/dash variants only if punctuation participates in the chosen
+  comparison contract.
+- Join line-end hyphenation conservatively. Preserve raw tokens and provenance,
+  and do not merge genuine compounds blindly.
+- Keep normalization as a pure, deterministic layer with table-driven unit
+  tests.
 
-Phase 2 can add optional scanned-document checks:
+Acceptance:
 
-- Use OCR confidence metadata if Docling exposes it reliably.
-- Optionally compare against a second OCR engine and flag disagreements.
-- Mark OCR-only pages as unverified and provide page previews or review targets.
+- All fixture tokens can be traced back to raw source text and a page.
+- Ligatures and harmless Unicode presentation differences compare equal.
+- True compounds and Turkish casing do not acquire false matches.
+- No token is dropped solely because it has fewer than three characters.
 
-An OCR-only page has no independent ground truth, so no implementation should
-present OCR agreement or confidence as a guaranteed accuracy percentage. Table
-geometry and visual formatting also need their own structural metrics; word
-coverage alone cannot validate them.
+## 3. Two-stage ordered alignment
+
+Implement two separate comparisons instead of one direct PDF-to-Markdown score.
+
+### 3a. Extraction comparison
+
+Align the PDF text layer with DoclingDocument content while retaining PDF page
+and Docling provenance.
+
+- Count repeated occurrences once; every match or explanation consumes one
+  occurrence.
+- Report deletions, insertions, substitutions, and reading-order disagreements.
+- Attribute figure and furniture text only on the correct page and, when
+  coordinates permit, the correct region.
+- Treat PDF text-layer order as fallible on multi-column pages. Describe an
+  order disagreement as a risk, not automatic proof that Docling is wrong.
+
+### 3b. Serialization comparison
+
+Align DoclingDocument content with the Markdown emitted from the same document.
+Use Docling provenance to locate Markdown additions where possible; otherwise
+mark their page as unknown rather than guessing.
+
+Implementation constraints:
+
+- A standard-library algorithm such as `difflib.SequenceMatcher` is acceptable,
+  but repeated-token behavior must be tested and `autojunk` must not silently
+  corrupt long-document results.
+- Use page/block alignment or bounded windows when needed. Do not allow an
+  unrestricted quadratic comparison to make large documents impractical.
+
+Acceptance:
+
+- Two PDF occurrences cannot both match one Markdown occurrence.
+- Deletion, insertion, substitution, and order fixtures produce stable results.
+- A 100-page and a 500-page synthetic token stream complete within documented
+  time and memory bounds on the development machine.
+
+## 4. Quality Report v2 metrics and explanations
+
+Define every denominator and keep normalized matches separate from explained
+loss.
+
+- Add `report_version = 2`.
+- Report at least:
+  - normalized exact-transfer rate: matched source tokens / source tokens
+  - accounted-for loss rate: explained deletions / source tokens
+  - unexplained-loss rate: unexplained deletions / source tokens
+  - unexpected-addition rate: unexpected additions / Markdown tokens
+  - substitution count, with an explicit rule for whether it also contributes
+    to deletion/addition totals
+- Show raw text, normalized text when different, page/provenance, and surrounding
+  context for representative problems.
+- Make explanation counters occurrence-based and page/region-aware for figures,
+  furniture, footnote numbers, and any table serialization repetition.
+- Preserve the report path and a concise console summary. Do not preserve flawed
+  internal field semantics merely to keep old unit tests unchanged. If the old
+  score is temporarily useful, expose it explicitly as `legacy_coverage`.
+- Relabel or replace the historical NIST `99.6%` README claim after v2 is
+  measured; do not present the v1 number as verified conversion accuracy.
+- Continue to state that OCR-only pages cannot receive a verified accuracy
+  percentage without independent ground truth.
+
+Acceptance:
+
+- Metric identities and denominators are unit-tested, including empty sources.
+- Explained loss never improves the raw transfer rate silently.
+- Console and Markdown reports distinguish extraction issues, serialization
+  issues, structural issues, and unverified pages.
+
+## 5. Structural and artifact integrity
+
+Compare DoclingDocument structure with the serialized Markdown and files.
+
+- Check heading counts and levels, list counts/items, table counts, and table-cell
+  text.
+- Check normal link targets and image link targets.
+- Resolve local artifact links safely within the output directory; flag missing,
+  empty, outside-root, or unreadable targets.
+- Decode images and record their dimensions. A filename with image extension is
+  not sufficient evidence that the artifact is valid.
+- Check expected artifact counts and detect stale extra artifacts when they can
+  make output ambiguous.
+- Keep these checks under serialization/integrity; they do not prove that
+  Docling extracted the source PDF correctly.
+
+Acceptance:
+
+- Tests cover a missing image, empty image, invalid image bytes, broken relative
+  link, outside-root link, lost heading, changed list, and changed table cell.
+- Report generation remains non-fatal to an otherwise successful conversion,
+  but every report failure remains visible as a warning.
+
+## 6. Full regression and benchmark gate
+
+Run the completed v2 pipeline against the curated fixtures and the NIST
+document.
+
+- Use the fact-based fixture expectations as the correctness gate.
+- Compare v1 and v2 NIST output only as diagnostic history; v1 is not ground
+  truth.
+- Record extraction, serialization, structure, duration, and peak-memory results
+  separately.
+- Keep external suites such as DP-Bench or OmniDocBench in a separate development
+  environment.
+- Optionally run MarkItDown against the same fixtures as a development baseline.
+  Do not add it as an end-user dependency without evidence that it improves a
+  defined profile.
+
+Quality Report v2 is complete when milestones 1-6 pass, the report documents its
+limits honestly, and the README examples match the new output.
+
+## 7. Lost decorative drop caps
+
+Investigate the known `This chapter` -> `his chapter` loss using the drop-cap
+fixture.
+
+- Determine whether the letter exists in the PDF text layer.
+- Inspect whether Docling sees it as text, a separate block, or a picture.
+- Locate the first stage where it disappears: extraction, document assembly, or
+  Markdown serialization.
+- Do not add a guessed leading letter. Implement a correction only when evidence
+  makes false insertions unlikely; otherwise document the upstream limitation
+  and consider an upstream Docling report.
+
+Acceptance:
+
+- The diagnosis identifies the failing stage with captured evidence.
+- Any correction has positive and negative regression cases.
+
+## 8. Configurable image resolution
+
+Add an opt-in `--image-scale` setting.
+
+- Keep `1.0` as the default so current output remains unchanged.
+- Accept documented safe values such as `1`, `2`, and `3`, and reject invalid or
+  unreasonable input clearly.
+- Thread the value into Docling's pipeline options.
+- Report conversion duration and total artifact bytes in the batch/result
+  summary when useful.
+- Verify that higher scales increase dimensions as expected and do not break
+  Markdown image links.
+
+## 9. Output manifest, atomic completion, and `--skip-existing`
+
+Do not implement freshness using modification times alone.
+
+- Write a per-document manifest containing:
+  - source identity (size, modification time, and SHA-256)
+  - application and Docling versions
+  - profile, formula setting, image scale, and report setting
+  - expected Markdown, JSON, report, and artifact paths
+  - artifact sizes and a final completion marker
+- Write the completion manifest last. Prefer a staging directory or another
+  safe atomic-completion strategy so an interrupted run cannot look complete.
+- `--skip-existing` may skip only when the manifest matches the source and all
+  requested settings, every required output passes integrity checks, and the
+  completion marker is present.
+- A missing, old, corrupt, or incompatible manifest causes reconversion.
+- Show converted, skipped, and failed counts separately in batch summaries.
+- Never delete unrelated user files while cleaning stale converter artifacts.
+
+## 10. Live formula conversion
+
+When network/model availability permits, finish the CodeFormulaV2 download and
+test `--formula` with a real PDF.
+
+- Verify LaTeX output and surrounding prose.
+- Test both fast and quality profiles.
+- Verify and document interrupted-download recovery instead of assuming it.
+- Keep ordinary conversion usable when the optional model is unavailable.
+
+## Deferred: merged-cell HTML tables
+
+Markdown pipe tables cannot represent `colspan` or `rowspan`; the real structure
+already remains in Docling JSON. The NIST document contains merged cells in 27
+of 55 tables, so a mixed HTML serializer would turn roughly half its tables into
+HTML while not recovering lists that were already flattened during extraction.
+
+Do not implement this now. Reconsider an opt-in mixed serializer only if visual
+document fidelity becomes more important than readable Markdown source and LLM
+or search consumption.
+
+## Suggested agent checkpoints
+
+Use these as separate implementation runs rather than asking one agent to finish
+the entire open-ended backlog:
+
+1. Milestone A: fixture foundation and tokenization (sections 1-2)
+2. Milestone B: ordered alignment and metrics (sections 3-4)
+3. Milestone C: structural integrity and full v2 gate (sections 5-6)
+4. Milestone D: drop-cap diagnosis (section 7)
+5. Milestone E: image scale (section 8)
+6. Milestone F: manifest and skip-existing (section 9)
+7. Milestone G: live formula test when network is available (section 10)
+
+Within each run, the agent should inspect the relevant code first, add failing
+tests for the contract, implement the smallest cohesive change, run focused and
+full tests, inspect the final diff, update documentation, and stop only at the
+milestone's verifiable acceptance condition. It should ask for user input only
+when work requires network/model downloads, destructive replacement, a new
+runtime dependency, or a product decision not settled by this plan.

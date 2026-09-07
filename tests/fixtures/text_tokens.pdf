@@ -1,0 +1,91 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Pages /Kids [7 0 R 9 0 R] /Count 2 >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+4 0 obj
+<< /Length 376 >>
+stream
+/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def
+/CMapName /FixtureUnicode def
+/CMapType 2 def
+1 begincodespacerange
+<00> <FF>
+endcodespacerange
+5 beginbfchar
+<80> <0130>
+<81> <0131>
+<82> <FB01>
+<83> <FB02>
+<84> <FB00>
+endbfchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [128 /Idotaccent /dotlessi /fi /fl /ff] >> /ToUnicode 4 0 R >>
+endobj
+6 0 obj
+<< /Length 665 >>
+stream
+BT /FB 22 Tf 1 0 0 1 54 738 Tm (Token Regression Fixture) Tj ET
+BT /F1 12 Tf 1 0 0 1 54 706 Tm (Turkish dotted and dotless forms:) Tj ET
+BT /FU 16 Tf 1 0 0 1 245 706 Tm <80204920692081> Tj ET
+BT /F1 12 Tf 1 0 0 1 54 678 Tm (Unicode ligatures:) Tj ET
+BT /FU 16 Tf 1 0 0 1 165 678 Tm <8220832084> Tj ET
+BT /F1 12 Tf 1 0 0 1 54 644 Tm (A ve 7 42 are short and numeric tokens.) Tj ET
+BT /F1 12 Tf 1 0 0 1 54 616 Tm (A genuine risk-based compound keeps its hyphen.) Tj ET
+BT /F1 12 Tf 1 0 0 1 54 576 Tm (Line-end hyphen-) Tj ET
+BT /F1 12 Tf 1 0 0 1 54 550 Tm (ation joins conservatively.) Tj ET
+BT /F1 12 Tf 1 0 0 1 54 512 Tm (echo echo occur twice on this page.) Tj ET
+
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 1 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 2 0 R /FB 3 0 R /FU 5 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 132 >>
+stream
+BT /FB 18 Tf 1 0 0 1 54 738 Tm (Second Page) Tj ET
+BT /F1 12 Tf 1 0 0 1 54 704 Tm (echo occurs again across a page boundary.) Tj ET
+
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 1 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 2 0 R /FB 3 0 R /FU 5 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Type /Catalog /Pages 1 0 R >>
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000015 00000 n 
+0000000078 00000 n 
+0000000148 00000 n 
+0000000223 00000 n 
+0000000650 00000 n 
+0000000853 00000 n 
+0000001569 00000 n 
+0000001715 00000 n 
+0000001898 00000 n 
+0000002044 00000 n 
+trailer
+<< /Size 11 /Root 10 0 R >>
+startxref
+2094
+%%EOF
