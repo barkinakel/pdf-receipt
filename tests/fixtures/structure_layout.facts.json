@@ -81,6 +81,17 @@
       "id": "drop-cap",
       "type": "known_limitation",
       "issue": "Decorative drop cap may be detached from the following word",
+      "diagnosis": {
+        "fragmentation_stage": "docling_parsing_and_layout",
+        "reading_order_failure_stage": "final_docling_document_assembly",
+        "pdf_text_layer": "This chapter begins with a decorative drop cap.",
+        "docling_items": [
+          "T",
+          "his chapter begins with a decorative drop cap."
+        ],
+        "markdown_serializes_document_order": true,
+        "local_repair_applied": false
+      },
       "accepted_outcomes": [
         {
           "name": "drop-cap-preserved",

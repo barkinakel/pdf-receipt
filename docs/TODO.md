@@ -19,9 +19,10 @@ Current state after the completed Quality Report v2 gate.
 | B: ordered two-stage alignment | 3 | done |
 | B: Quality Report v2 metrics and explanations | 4 | done |
 | C: structural integrity and full v2 gate | 5-6 | done |
-| D and later | 7-10 | not started |
+| D: drop-cap diagnosis | 7 | done |
+| E and later | 8-10 | not started |
 
-Landed for sections 1-6:
+Landed for sections 1-7:
 
 - `tests/fixtures/` fact-based PDF corpus plus `tests/fixture_harness.py`, with
   live Docling checks isolated in `tests/integration/` behind
@@ -42,13 +43,18 @@ Landed for sections 1-6:
 - A concise structural console result and detailed report tables for headings,
   lists/items, tables/cells, links, images, and artifact status.
 - The full offline fixture gate and the 95-page NIST v2 diagnostic benchmark.
+- A captured two-stage drop-cap diagnosis in `docs/DROP_CAP_DIAGNOSIS.md`:
+  PDFium retains the intact word, Docling parsing/layout keeps it as two adjacent
+  fragments, final document assembly loses their adjacency, and Markdown
+  faithfully serializes the detached order.
 - `docs/ALIGNMENT.md` plus README updates in both languages.
 
 Verification at this point: `.venv\Scripts\python.exe -m unittest discover -s tests -t .`
-reports 186 tests OK with 1 skip. The separately enabled live Docling integration
-test passes all three fixtures offline with cached models. The final NIST run
-passes structure and artifact integrity; its detailed measurements are recorded
-in `docs/ALIGNMENT.md`. `git diff --check` is clean.
+reports 188 tests OK with 2 skips. The separately enabled live Docling
+integration suite passes both its pipeline-stage diagnosis and all three
+fixtures offline with cached models. The final NIST run passes structure and
+artifact integrity; its detailed measurements are recorded in
+`docs/ALIGNMENT.md`. `git diff --check` is clean.
 
 ## Working contract
 
@@ -261,7 +267,8 @@ default `quality` profile):
 
 Quality Report v2 is complete when milestones 1-6 pass, the report documents its
 limits honestly, and the README examples match the new output. This condition is
-now satisfied; section 7 is the next milestone and has not been started.
+satisfied, and the section 7 diagnosis is also complete; section 8 is next and
+has not been started.
 
 ## 7. Lost decorative drop caps
 
@@ -280,6 +287,25 @@ Acceptance:
 
 - The diagnosis identifies the failing stage with captured evidence.
 - Any correction has positive and negative regression cases.
+
+Completed diagnosis (2026-09-08, Docling 2.124.0):
+
+- PDFium returns the intact `This chapter...` text and adjacent character boxes.
+- Docling parsed text lines and layout clusters already represent `T` and
+  `his chapter...` as separate but adjacent blocks. Page and conversion assembly
+  preserve that adjacency.
+- The final DoclingDocument/JSON retain both as BODY text items but place a
+  picture and right-column blocks between them.
+- Markdown serialization faithfully preserves that already detached order, so
+  word fragmentation begins in Docling parsing/layout and reading-order
+  adjacency is lost during final document assembly. Markdown serialization is
+  not an additional failing stage.
+- No local correction is applied. There is no semantic drop-cap marker, and one
+  synthetic positive case cannot rule out false joins of initials, labels,
+  charts, columns, or intentionally separate one-letter paragraphs. The fixture
+  continues to accept both the current upstream behavior and a future corrected
+  outcome. Evidence and upstream-report notes are in
+  `docs/DROP_CAP_DIAGNOSIS.md`.
 
 ## 8. Configurable image resolution
 

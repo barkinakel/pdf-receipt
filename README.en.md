@@ -215,8 +215,10 @@ Lost:
   header spanning three columns comes out as
   `| Provided To | Provided To | Provided To |`. The real structure stays in the
   `.json` file as `colspan`.
-- **Drop caps** (the large letter at the start of a chapter) disappear:
-  `This` becomes `his`.
+- **Drop caps** (the large letter at the start of a chapter) can become detached
+  and misordered: `This` may be split into a standalone `T` and a later `his`
+  block. The character remains in JSON/Markdown but its reading relationship is
+  lost; see `docs/DROP_CAP_DIAGNOSIS.md`.
 - **Superscript footnote numbers** drop into the line.
 - **Text drawn inside figures** does not come out as text; it stays in the image.
 

@@ -36,7 +36,11 @@ than treating them as successes:
 
 - the PDF link annotation is not serialized as a Markdown link, and its literal
   URL is folded into a table row and repeated in all three cells;
-- the decorative `T` is detached from `his chapter...`.
+- the decorative `T` is detached from `his chapter...`. The PDF text layer has
+  the intact phrase. Docling 2.124.0 parsing/layout creates two adjacent pieces;
+  page and conversion assembly keep them adjacent, but final document assembly
+  puts unrelated blocks between the BODY `TextItem`s. Markdown faithfully
+  serializes that detached document order. See `docs/DROP_CAP_DIAGNOSIS.md`.
 
 Each limitation fact also accepts the corrected outcome, so a future upstream
 or project fix will not permanently bake the loss into the corpus contract.

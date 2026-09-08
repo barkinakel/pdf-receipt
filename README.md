@@ -212,7 +212,10 @@ Kaybolan:
 - **Birleşik tablo hücreleri** Markdown'da olmadığı için değer tekrarlanır:
   üç sütuna yayılan bir başlık `| Provided To | Provided To | Provided To |`
   şeklinde çıkar. Gerçek yapı `.json` içinde `colspan` olarak durur.
-- **Süslü baş harfler** (bölüm başlarındaki büyük harf) düşer: `This` → `his`.
+- **Süslü baş harfler** (bölüm başlarındaki büyük harf) ayrık ve yanlış sırada
+  kalabilir: `This` ifadesi bağımsız `T` ile daha sonra gelen `his` bloklarına
+  bölünebilir. Harf JSON/Markdown içinde kalsa da okuma ilişkisi kaybolur; tanı
+  için `docs/DROP_CAP_DIAGNOSIS.md` dosyasına bak.
 - **Üst simge dipnot numaraları** düz metne iner.
 - **Şekillerin içine çizilmiş yazılar** metin olarak çıkmaz, resmin içinde
   kalır.

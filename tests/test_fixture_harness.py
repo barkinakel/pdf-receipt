@@ -58,6 +58,24 @@ class FixtureCorpusTests(unittest.TestCase):
             {"link_target", "known_limitation"},
         )
         self.assertEqual(facts["drop-cap"]["type"], "known_limitation")
+        diagnosis = facts["drop-cap"]["diagnosis"]
+        self.assertEqual(
+            diagnosis["fragmentation_stage"],
+            "docling_parsing_and_layout",
+        )
+        self.assertEqual(
+            diagnosis["reading_order_failure_stage"],
+            "final_docling_document_assembly",
+        )
+        self.assertEqual(
+            diagnosis["pdf_text_layer"],
+            "This chapter begins with a decorative drop cap.",
+        )
+        self.assertEqual(
+            diagnosis["docling_items"],
+            ["T", "his chapter begins with a decorative drop cap."],
+        )
+        self.assertFalse(diagnosis["local_repair_applied"])
 
         link_outcomes = facts["source-link"]["accepted_outcomes"]
         link_types = {
@@ -97,6 +115,30 @@ class FixtureCorpusTests(unittest.TestCase):
             )
         ]
         self.assertEqual(stream_order, sorted(stream_order))
+
+    def test_drop_cap_is_intact_and_spatially_adjacent_in_pdf_text_layer(self) -> None:
+        pdf_text = qr.read_pdf_text(FIXTURES / "structure_layout.pdf")
+        phrase = "This chapter begins with a decorative drop cap."
+        start = pdf_text.pages[0].index(phrase)
+        cap_box = pdf_text.page_char_boxes[0][start]
+        next_box = pdf_text.page_char_boxes[0][start + 1]
+
+        self.assertIsNotNone(cap_box)
+        self.assertIsNotNone(next_box)
+        assert cap_box is not None and next_box is not None
+        self.assertLess(cap_box.right, next_box.left)
+        self.assertLess(
+            next_box.left - cap_box.right,
+            next_box.top - next_box.bottom,
+        )
+        self.assertGreater(
+            cap_box.top - cap_box.bottom,
+            3 * (next_box.top - next_box.bottom),
+        )
+        self.assertGreater(
+            min(cap_box.top, next_box.top) - max(cap_box.bottom, next_box.bottom),
+            0,
+        )
 
     def test_every_pdf_text_token_traces_to_raw_text_and_a_page(self) -> None:
         token_count = 0

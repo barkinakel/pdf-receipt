@@ -296,7 +296,9 @@ it neither ground truth nor directly comparable to the v2 transfer rates.
 - The Markdown masker is deliberately small and deterministic, not a complete
   CommonMark parser. Unusual nested constructs, formulas, and custom extensions
   may still yield imperfect text operations.
-- The fixture's lost PDF link annotation/repeated URL row and detached
-  decorative drop cap remain recorded Milestone A limitations. A link annotation
-  absent from the DoclingDocument cannot be verified as Markdown serialization;
-  this milestone does not repair extraction content.
+- The fixture's lost PDF link annotation/repeated URL row remains recorded as a
+  limitation. A link annotation absent from the DoclingDocument cannot be
+  verified as Markdown serialization. The decorative drop cap is diagnosed in
+  `docs/DROP_CAP_DIAGNOSIS.md`: its character survives, but Docling document
+  parsing/layout does not reconstruct the word relationship and final document
+  assembly then loses the fragments' reading-order adjacency.
