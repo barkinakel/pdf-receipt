@@ -4,6 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from PIL import Image
+
 from pdftomd import quality_report as qr
 from tests.fixture_harness import FixtureCase, assert_markdown_facts, load_fixture_cases
 
@@ -133,7 +135,7 @@ class FixtureCorpusTests(unittest.TestCase):
             root = Path(temp_dir)
             artifact = root / "sample_artifacts" / "image.png"
             artifact.parent.mkdir()
-            artifact.write_bytes(b"not-empty")
+            Image.new("RGB", (2, 3), "white").save(artifact, format="PNG")
             markdown_path = root / "sample.md"
             markdown = "\n".join(
                 (
@@ -179,6 +181,30 @@ class FixtureCorpusTests(unittest.TestCase):
             )
 
             assert_markdown_facts(case, markdown, markdown_path=markdown_path)
+
+    def test_valid_image_fact_rejects_non_image_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            artifact = root / "sample_artifacts" / "image.png"
+            artifact.parent.mkdir()
+            artifact.write_bytes(b"not an image")
+            markdown_path = root / "sample.md"
+            case = FixtureCase(
+                name="invalid-image",
+                pdf_path=Path("invalid-image.pdf"),
+                facts_path=Path("invalid-image.facts.json"),
+                features=(),
+                facts=(
+                    {"id": "image", "type": "valid_image_links", "minimum": 1},
+                ),
+            )
+
+            with self.assertRaisesRegex(AssertionError, "cannot be decoded"):
+                assert_markdown_facts(
+                    case,
+                    "![Image](sample_artifacts/image.png)",
+                    markdown_path=markdown_path,
+                )
 
 
 if __name__ == "__main__":

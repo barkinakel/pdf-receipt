@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 from pdftomd import alignment
 from pdftomd import quality_report as qr
+from pdftomd import structural_integrity as si
 
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -461,6 +462,7 @@ class TwoStageTests(unittest.TestCase):
             "document",
             structure,
             "quality",
+            si.empty_report(),
         )
 
         self.assertIsNotNone(report.alignments)

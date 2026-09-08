@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from . import quality_report
+from . import structural_integrity
 
 Profile = Literal["fast", "quality"]
 
@@ -185,8 +186,20 @@ def write_quality_report(
     """Write the two-stage v2 evidence report and return its console summary."""
     structure = quality_report.describe_document(document)
     pdf_text = quality_report.read_pdf_text(pdf_path, structure.figures)
+    markdown_text = long_path(markdown_path).read_text(encoding="utf-8")
+    integrity = structural_integrity.evaluate(
+        document,
+        markdown_text,
+        markdown_path=markdown_path,
+        output_root=output.directory,
+        artifacts_dir=output.artifacts,
+    )
     report = quality_report.analyze(
-        pdf_text, markdown_path.read_text(encoding="utf-8"), structure, profile
+        pdf_text,
+        markdown_text,
+        structure,
+        profile,
+        integrity,
     )
     long_path(output.report).write_text(
         quality_report.render_markdown(report), encoding="utf-8"
@@ -223,7 +236,7 @@ def convert_pdf(
     # A broken report never fails the conversion; it only raises a warning.
     try:
         summary = write_quality_report(
-            pdf_path, markdown_path, result.document, output, runtime.profile
+            pdf_path, output.markdown, result.document, output, runtime.profile
         )
     except Exception as exc:
         return ConversionResult(output, report_error=str(exc))

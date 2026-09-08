@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -40,6 +41,7 @@ class LiveDoclingFixtureTests(unittest.TestCase):
                     )
                     self.assertIsNone(result.report_error)
                     self.assertIsNotNone(result.report_summary)
+                    self.assertIn("Structure: PASS", result.report_summary)
                     self.assertTrue(result.output.report.is_file())
                     markdown_path = result.output.markdown
                     assert_markdown_facts(
@@ -47,6 +49,9 @@ class LiveDoclingFixtureTests(unittest.TestCase):
                         markdown_path.read_text(encoding="utf-8"),
                         markdown_path=markdown_path,
                     )
+                    if "images" in case.features:
+                        report_text = result.output.report.read_text(encoding="utf-8")
+                        self.assertRegex(report_text, re.compile(r"\d+ × \d+"))
 
 
 if __name__ == "__main__":

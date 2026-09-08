@@ -102,21 +102,26 @@ numbers below are illustrative, not a reproduced document measurement:
 
 ```text
 Quality Report v2 | Extraction: transfer 98.0% (980/1000); unexplained 10; order risks 2 | Serialization: transfer 99.0% (990/1000); unexpected 5; order risks 1
-Structure: not evaluated in this milestone.
+Structure: PASS | headings 12/12; lists 3/3 (items 18/18); tables 4/4 (cells 86/86); links 2/2; images 5/5; stale 0
 ```
 
 The details go into `<name>_report.md`. Extraction (PDF text layer to
 DoclingDocument) and serialization (DoclingDocument to visible Markdown) have
 separate token counts, rates, accounting identities, and occurrence-level issue
 samples. This is text-layer agreement evidence, not verified document accuracy.
-Heading, list, table, link, and artifact integrity is not evaluated yet.
+The structural section also compares heading, list, table-cell, and link
+occurrences between the DoclingDocument and Markdown. It keeps local targets
+inside the output directory, decodes images to record their format and
+dimensions, and reports missing, empty, invalid, or stale artifacts. It never
+opens external links over the network. These are serialization-integrity
+checks; they do not by themselves prove that Docling extracted the PDF correctly.
 
 It earns its keep on scanned documents. Converting a PDF without a text layer
 using `--fast` silently produces an empty file, and the report says so:
 
 ```text
 Quality Report v2 | Extraction: transfer n/a (no source tokens); unexplained 0; order risks 0 | Serialization: transfer n/a (no source tokens); unexpected 0; order risks 0
-Structure: not evaluated in this milestone.
+Structure: PASS | headings 0/0; lists 0/0 (items 0/0); tables 0/0 (cells 0/0); links 0/0; images 0/0; stale 0
 WARNING: 2 pages without a text layer are unverified; --fast turned OCR off, so they may have come out empty. Coverage cannot be measured. Try again with --quality.
 ```
 
@@ -170,8 +175,9 @@ structure model.
 
 **Rule of thumb:** keep the default when the document is scanned or has tables;
 use `--fast` for plain text (novels, articles, contract text). When in doubt the
-default loses nothing, it is only slower. Measured: a 95-page table-heavy
-document took about 5 minutes on the default profile.
+default loses nothing, it is only slower. In the latest warm-cache verification,
+the 95-page, table-heavy NIST document converted in 276 seconds; end-to-end time
+including model loading and CLI shutdown was 283.355 seconds.
 
 `--formula` turns formulas into LaTeX. The first run downloads an extra 631 MB
 model; if the download is interrupted it resumes on the next run. It can be
@@ -179,10 +185,24 @@ combined with either profile.
 
 ## What survives and what does not
 
-The historical **99.6%** measurement on the 95-page NIST document is a legacy
-Quality Report v1 coverage result. It used the old counter that omitted tokens
-shorter than three characters and is not verified conversion accuracy. The
-document will be remeasured after Quality Report v2 is complete.
+The 95-page NIST SP 800-30 document was remeasured on September 8, 2026 with
+cached models, offline, and the default `--quality` profile:
+
+- Extraction transfer: **93.44%** (39,921/42,724), with 2.73% accounted loss,
+  0.64% unexplained loss, and 1,364 reading-order risks.
+- Serialization transfer: **98.37%** (40,680/41,355), with 0.11% unexplained
+  loss, 0.23% unexpected additions, and 436 reading-order risks.
+- Structural integrity: **PASS** — 152 headings, 40 lists/183 items, 55
+  tables/1,274 cells, and 7/7 valid PNGs; no missing or stale artifacts.
+- The latest warm-cache verification took 283.355 seconds end to end. The
+  highest `PeakWorkingSet64` from valid process samples in the first two offline
+  measurement runs was 3,587,977,216 bytes (3.342 GiB).
+
+The historical **99.6%** Quality Report v1 value remains diagnostic history.
+Its old counter omitted tokens shorter than three characters and did not account
+for occurrences one-to-one, so it is not directly comparable with the v2
+transfer rates. None of these values is a document-accuracy percentage because
+the NIST run has no manually verified ground truth.
 
 Kept: heading levels, paragraph and list structure, table data, the position of
 images within the text, footnotes. Page headers and footers are dropped on

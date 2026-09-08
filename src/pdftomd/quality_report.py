@@ -19,6 +19,7 @@ from typing import Any, Iterable, Literal
 
 from . import alignment
 from . import quality_metrics
+from . import structural_integrity as si
 
 IMAGE_LINK = re.compile(r"!\[[^\]]*\]\([^)]*\)")
 TRAILING_DIGITS = re.compile(r"\d+$")
@@ -589,6 +590,7 @@ class QualityReport:
     unexplained: int
     pages_without_text_layer: tuple[int, ...]
     worst_pages: tuple[PageIssue, ...]
+    structural_integrity: si.StructuralIntegrityReport
     alignments: alignment.TwoStageAlignment = field(compare=False, repr=False)
     report_version: int = REPORT_VERSION
 
@@ -762,6 +764,7 @@ def analyze(
     markdown_text: str,
     structure: DocumentStructure,
     profile: str,
+    structural_integrity: si.StructuralIntegrityReport,
 ) -> QualityReport:
     """Build two-stage evidence while retaining the rendered v1 measurement."""
     case_profile = pdf_text.case_profile
@@ -868,6 +871,7 @@ def analyze(
         unexplained=tally.counts[UNEXPLAINED],
         pages_without_text_layer=tuple(scanned_pages),
         worst_pages=tuple(issues[:5]),
+        structural_integrity=structural_integrity,
         alignments=alignments,
     )
 
@@ -884,7 +888,7 @@ def render_console(report: QualityReport) -> str:
         f" | Serialization: transfer {_console_rate(serialization)};"
         f" unexpected {serialization.unexpected_addition_numerator};"
         f" order risks {serialization.order_risk_count}",
-        "Structure: not evaluated in this milestone.",
+        _structural_console(report.structural_integrity),
     ]
 
     scanned = len(report.pages_without_text_layer)
@@ -905,6 +909,21 @@ def render_console(report: QualityReport) -> str:
             f" be measured for {pronoun}."
         )
     return "\n".join(lines)
+
+
+def _structural_console(report: si.StructuralIntegrityReport) -> str:
+    status = "PASS" if report.passed else f"ISSUES {len(report.issues)}"
+    return (
+        f"Structure: {status}"
+        f" | headings {report.headings.actual}/{report.headings.expected}"
+        f"; lists {report.lists.actual}/{report.lists.expected}"
+        f" (items {report.list_items.actual}/{report.list_items.expected})"
+        f"; tables {report.tables.actual}/{report.tables.expected}"
+        f" (cells {report.table_cells.actual}/{report.table_cells.expected})"
+        f"; links {report.links.actual}/{report.links.expected}"
+        f"; images {report.valid_image_count}/{report.images.expected}"
+        f"; stale {report.stale_artifact_count}"
+    )
 
 
 def _console_rate(metrics: quality_metrics.StageMetrics) -> str:
@@ -1131,6 +1150,117 @@ def _format_limits_section(report: QualityReport) -> list[str]:
     return lines
 
 
+def _markdown_cell(value: object) -> str:
+    return str(value).replace("|", "&#124;").replace("\r", " ").replace("\n", " ")
+
+
+def _integrity_status(
+    integrity: si.StructuralIntegrityReport, category: si.Category
+) -> str:
+    count = sum(issue.category == category for issue in integrity.issues)
+    return "PASS" if count == 0 else f"ISSUES ({count})"
+
+
+def _structural_integrity_section(report: si.StructuralIntegrityReport) -> list[str]:
+    lines = [
+        "## Structural and artifact integrity",
+        "",
+        (
+            "**PASS.** Docling structure agrees with the serialized Markdown and"
+            " its local artifacts."
+            if report.passed
+            else f"**ISSUES ({len(report.issues)}).** The conversion succeeded, but"
+            " the differences below need review."
+        ),
+        "",
+        "These checks cover Docling-to-Markdown serialization only. They do not"
+        " prove that Docling extracted the source PDF correctly.",
+        "",
+        "| Check | Expected | Found | Status |",
+        "|---|---:|---:|---|",
+        (
+            f"| Headings | {report.headings.expected} | {report.headings.actual} | "
+            f"{_integrity_status(report, 'heading')} |"
+        ),
+        (
+            f"| Lists | {report.lists.expected} | {report.lists.actual} | "
+            f"{_integrity_status(report, 'list')} |"
+        ),
+        (
+            f"| List items | {report.list_items.expected} | "
+            f"{report.list_items.actual} | {_integrity_status(report, 'list')} |"
+        ),
+        (
+            f"| Tables | {report.tables.expected} | {report.tables.actual} | "
+            f"{_integrity_status(report, 'table')} |"
+        ),
+        (
+            f"| Table cells | {report.table_cells.expected} | "
+            f"{report.table_cells.actual} | {_integrity_status(report, 'table')} |"
+        ),
+        (
+            f"| Normal links | {report.links.expected} | {report.links.actual} | "
+            f"{_integrity_status(report, 'link')} |"
+        ),
+        (
+            f"| Image links | {report.images.expected} | {report.images.actual} | "
+            f"{_integrity_status(report, 'artifact')} |"
+        ),
+        (
+            f"| Valid decoded images | {report.images.expected} | "
+            f"{report.valid_image_count} | {_integrity_status(report, 'artifact')} |"
+        ),
+        (
+            f"| Stale artifacts | 0 | {report.stale_artifact_count} | "
+            f"{_integrity_status(report, 'artifact')} |"
+        ),
+        "",
+    ]
+
+    if report.issues:
+        shown = report.issues[:50]
+        lines += [
+            "### Structural issues",
+            "",
+            "| Category | Code | Location | Expected | Found |",
+            "|---|---|---|---|---|",
+        ]
+        lines += [
+            f"| {_markdown_cell(issue.category)} | {_markdown_cell(issue.code)} |"
+            f" {_markdown_cell(issue.location)} | {_markdown_cell(issue.expected)} |"
+            f" {_markdown_cell(issue.actual)} |"
+            for issue in shown
+        ]
+        if len(report.issues) > len(shown):
+            lines.append(
+                f"\nShowing {len(shown)} of {len(report.issues)} structural issues."
+            )
+        lines.append("")
+
+    lines += ["### Artifact checks", ""]
+    if not report.artifacts:
+        lines += ["No image artifacts were referenced or left stale.", ""]
+        return lines
+
+    lines += [
+        "| Target | Status | Bytes | Format | Dimensions |",
+        "|---|---|---:|---|---:|",
+    ]
+    for artifact in report.artifacts:
+        dimensions = (
+            f"{artifact.width} × {artifact.height}"
+            if artifact.width is not None and artifact.height is not None
+            else "—"
+        )
+        lines.append(
+            f"| {_markdown_cell(artifact.target)} | {artifact.status} |"
+            f" {artifact.size_bytes if artifact.size_bytes is not None else '—'} |"
+            f" {artifact.format or '—'} | {dimensions} |"
+        )
+    lines.append("")
+    return lines
+
+
 def render_markdown(report: QualityReport) -> str:
     """Render the occurrence-accounted, two-stage Quality Report v2."""
     lines = [
@@ -1150,11 +1280,7 @@ def render_markdown(report: QualityReport) -> str:
             "Serialization: Docling → Markdown", report.serialization_metrics
         ),
         *_scanned_pages_section(report),
-        "## Structural integrity",
-        "",
-        "Heading, list, table, link, and artifact integrity are not evaluated in"
-        " this milestone.",
-        "",
+        *_structural_integrity_section(report.structural_integrity),
         *_format_limits_section(report),
         "## Legacy diagnostic",
         "",

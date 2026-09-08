@@ -11,17 +11,17 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state as of the Quality Report v2 metrics pass.
+Current state after the completed Quality Report v2 gate.
 
 | Milestone | Sections | State |
 |---|---|---|
 | A: fixture foundation and tokenization | 1-2 | done |
 | B: ordered two-stage alignment | 3 | done |
 | B: Quality Report v2 metrics and explanations | 4 | done |
-| C: structural integrity and full v2 gate | 5-6 | not started |
+| C: structural integrity and full v2 gate | 5-6 | done |
 | D and later | 7-10 | not started |
 
-Landed for sections 1-4:
+Landed for sections 1-6:
 
 - `tests/fixtures/` fact-based PDF corpus plus `tests/fixture_harness.py`, with
   live Docling checks isolated in `tests/integration/` behind
@@ -36,17 +36,19 @@ Landed for sections 1-4:
 - `report_version = 2`, the two-stage console summary and Markdown report,
   `legacy_coverage` with its documented `coverage` alias, and the OCR-only
   unverified-page wording.
+- Dependency-free Docling-GFM structure comparison plus safely resolved local
+  links, Pillow-decoded image artifacts, dimensions, and stale-file detection in
+  `src/pdftomd/structural_integrity.py`.
+- A concise structural console result and detailed report tables for headings,
+  lists/items, tables/cells, links, images, and artifact status.
+- The full offline fixture gate and the 95-page NIST v2 diagnostic benchmark.
 - `docs/ALIGNMENT.md` plus README updates in both languages.
 
 Verification at this point: `.venv\Scripts\python.exe -m unittest discover -s tests -t .`
-reports 160 tests OK with 1 skip (the live Docling integration test, which needs
-cached models and the environment variable above). `git diff --check` is clean.
-
-Open before section 5 starts:
-
-- The offline fixture integration run has not been executed against cached models.
-- The NIST document has not been remeasured under v2; the README still carries the
-  v1 `99.6%` figure explicitly labelled as legacy diagnostic history.
+reports 186 tests OK with 1 skip. The separately enabled live Docling integration
+test passes all three fixtures offline with cached models. The final NIST run
+passes structure and artifact integrity; its detailed measurements are recorded
+in `docs/ALIGNMENT.md`. `git diff --check` is clean.
 
 ## Working contract
 
@@ -239,8 +241,27 @@ document.
   Do not add it as an end-user dependency without evidence that it improves a
   defined profile.
 
+Completed gate (2026-09-08, Python 3.12.0, Windows, cached models, offline,
+default `quality` profile):
+
+- All fixture facts pass, including decoded referenced images; the live suite
+  completes as one integration test with three fixture subtests.
+- NIST extraction transfer is 93.44% (39,921/42,724), with 2.73% accounted loss,
+  0.64% unexplained loss, and 1,364 reading-order risks.
+- NIST serialization transfer is 98.37% (40,680/41,355), with 0.11% unexplained
+  loss, 0.23% unexpected additions, and 436 reading-order risks.
+- NIST structural integrity passes for 152 headings, 40 lists/183 items, 55
+  tables/1,274 cells, and 7/7 decoded PNG artifacts with no stale files.
+- The post-review warm-cache run takes 283.355 seconds end to end (276 seconds
+  inside the document conversion timer). The maximum valid real-process
+  `PeakWorkingSet64` observation from the first two offline measurement runs is
+  3,587,977,216 bytes (3.342 GiB).
+- The v1 `99.62%` value remains diagnostic history, not ground truth and not a
+  directly comparable v2 transfer score.
+
 Quality Report v2 is complete when milestones 1-6 pass, the report documents its
-limits honestly, and the README examples match the new output.
+limits honestly, and the README examples match the new output. This condition is
+now satisfied; section 7 is the next milestone and has not been started.
 
 ## 7. Lost decorative drop caps
 

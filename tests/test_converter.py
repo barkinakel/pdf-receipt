@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 
 from pdftomd import converter
 from pdftomd import quality_report as qr
+from pdftomd import structural_integrity as si
 
 
 def output_paths(root: Path, stem: str = "source") -> converter.OutputPaths:
@@ -196,6 +197,55 @@ class ExportTests(unittest.TestCase):
             self.assertIsNone(result.report_error)
             report_mock.assert_called_once()
 
+    def test_structural_findings_do_not_fail_a_successful_conversion(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir).resolve()
+            output = output_paths(root)
+            header = SimpleNamespace(
+                label=SimpleNamespace(value="section_header"),
+                text="Expected",
+                level=1,
+                hyperlink=None,
+                prov=(),
+                self_ref="#/texts/1",
+                content_layer=SimpleNamespace(value="body"),
+            )
+            document = Mock()
+            document.pages = {}
+            document.tables = ()
+            document.pictures = ()
+            document.texts = (header,)
+            document.iterate_items.side_effect = (
+                lambda **_kwargs: iter(((header, 0),))
+            )
+            document.save_as_markdown.side_effect = (
+                lambda path, **_kwargs: Path(path).write_text(
+                    "# Wrong\n", encoding="utf-8"
+                )
+            )
+            docling = Mock()
+            docling.convert.return_value = SimpleNamespace(document=document)
+            runtime = converter.DoclingRuntime(
+                docling,
+                "referenced",
+                "quality",
+                True,
+            )
+
+            with patch(
+                "pdftomd.converter.quality_report.read_pdf_text",
+                return_value=qr.PdfText("source.pdf", ("Expected",)),
+            ):
+                result = converter.convert_pdf(
+                    runtime,
+                    root / "source.pdf",
+                    output,
+                )
+
+            self.assertIsNone(result.report_error)
+            self.assertIn("Structure: ISSUES", result.report_summary or "")
+            self.assertTrue(output.report.is_file())
+
     def test_a_broken_report_does_not_fail_the_conversion(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir).resolve()
@@ -263,7 +313,8 @@ class ExportTests(unittest.TestCase):
                 "Quality Report v2 | Extraction: transfer 100.0% (1/1);"
                 " unexplained 0; order risks 0 | Serialization: transfer 100.0%"
                 " (1/1); unexpected 0; order risks 0\n"
-                "Structure: not evaluated in this milestone.",
+                "Structure: PASS | headings 0/0; lists 0/0 (items 0/0);"
+                " tables 0/0 (cells 0/0); links 0/0; images 0/0; stale 0",
             )
             self.assertTrue(output.report.is_file())
             described = qr.describe_document(document)
@@ -272,6 +323,7 @@ class ExportTests(unittest.TestCase):
                 "visible",
                 described,
                 "quality",
+                si.empty_report(),
             )
             self.assertIsNotNone(report.alignments)
             self.assertEqual(

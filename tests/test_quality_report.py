@@ -4,6 +4,7 @@ import unittest
 from types import SimpleNamespace
 
 from pdftomd import quality_report as qr
+from pdftomd import structural_integrity as si
 
 
 def structure(**overrides) -> qr.DocumentStructure:
@@ -21,7 +22,13 @@ def structure(**overrides) -> qr.DocumentStructure:
 def analyze(page_texts, markdown, profile="quality", figure_text="", **overrides):
     """Run a report on hand-written page text instead of a real PDF."""
     pdf_text = qr.PdfText("document.pdf", tuple(page_texts), figure_text)
-    return qr.analyze(pdf_text, markdown, structure(**overrides), profile)
+    return qr.analyze(
+        pdf_text,
+        markdown,
+        structure(**overrides),
+        profile,
+        si.empty_report(),
+    )
 
 
 class CoverageTests(unittest.TestCase):
@@ -91,7 +98,9 @@ class CoverageTests(unittest.TestCase):
             ("İ I i ı",),
             case_profile="turkic",
         )
-        report = qr.analyze(pdf_text, "i ı İ I", structure(), "quality")
+        report = qr.analyze(
+            pdf_text, "i ı İ I", structure(), "quality", si.empty_report()
+        )
 
         self.assertEqual(report.words_matched, 4)
 
@@ -101,12 +110,14 @@ class CoverageTests(unittest.TestCase):
             "ı",
             structure(),
             "quality",
+            si.empty_report(),
         )
         dotless = qr.analyze(
             qr.PdfText("document.pdf", ("I",), case_profile="turkic"),
             "i",
             structure(),
             "quality",
+            si.empty_report(),
         )
 
         self.assertEqual(dotted.words_matched, 0)
@@ -169,6 +180,7 @@ class AlignmentRegressionTests(unittest.TestCase):
                 )
             ),
             "quality",
+            si.empty_report(),
         )
 
         operations = report.alignments.extraction.operations
@@ -204,6 +216,7 @@ class AlignmentRegressionTests(unittest.TestCase):
                 ),
             ),
             "quality",
+            si.empty_report(),
         )
 
         operations = report.alignments.extraction.operations

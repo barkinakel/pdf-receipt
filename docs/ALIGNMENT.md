@@ -167,8 +167,48 @@ length, preserving useful offsets. It excludes image alt text and artifact
 paths, inline-link targets, reference definitions, ordered-list numbers, code
 fence markers/info strings, and actual HTML tags. Ordinary link labels, code
 body text, and the visible contents of CommonMark URL and email autolinks remain
-tokens. Link-target correctness and full CommonMark structural validation are
-intentionally deferred to the structural milestone.
+tokens. Link targets and output structure are evaluated separately from this
+token stream by the structural-integrity layer below.
+
+## Structural and artifact integrity
+
+Expected structural facts come directly from the DoclingDocument; actual facts
+come from the Markdown file written to disk. The comparison is occurrence-based
+and preserves document order:
+
+- titles and section headers retain their expected Markdown levels and text;
+- list-group counts and list-item depth, ordered state, and text are compared;
+- tables are compared by table, row, and column using `TableData.grid`, so a
+  merged cell repeated across Markdown grid slots is expected rather than
+  misreported as corruption;
+- normal hyperlink targets are consumed one-to-one; and
+- the number of Markdown image links is checked against BODY-layer Docling
+  picture items included by the default serializer.
+
+The parser deliberately implements the GitHub-Flavoured Markdown subset emitted
+by Docling rather than claiming complete CommonMark validation. It ignores
+fenced code, handles ATX headings, nested ordered/unordered lists, GFM pipe
+tables, escaped cell pipes, multi-line list items, balanced/nested inline link
+labels and destinations, percent encoding, Windows separators, and Docling's
+literal spaces in referenced-image paths. Paired inline-format markers are
+removed from visible text while unmatched or escaped literal Markdown
+characters remain part of the compared value. Indented fences used inside list
+containers are excluded, and only marker-only lines close a fence.
+
+Local targets are resolved relative to the Markdown file. Existing symlinks are
+resolved before the candidate is required to remain under the document output
+directory. Missing, directory, unreadable, empty, invalid, outside-root, and
+unsupported targets remain distinct issues. HTTP, HTTPS, and mail links are
+compared but never fetched; anchors are not treated as files. Pillow is already
+a Docling Core dependency and is imported lazily to verify and fully decode each
+image, record its byte size, format, width, and height. Unreferenced files in the
+dedicated artifact directory and duplicate image targets are reported without
+deleting anything.
+
+Structural findings are serialization-integrity evidence, not proof of correct
+PDF extraction. Ordinary findings keep the conversion successful and appear in
+the console summary and detailed report. An unexpected report-generation
+exception continues through the existing visible, non-fatal warning path.
 
 ## Synthetic development measurements
 
@@ -195,10 +235,54 @@ at 10 seconds and 128 MiB. These thresholds are deliberately generous and
 detect loss of the documented bound without making normal machine-speed
 variance brittle.
 
+## Full NIST v2 measurement
+
+Measured on 2026-09-08 with Python 3.12.0 on Windows (`Intel64 Family 6 Model
+198`), cached models, forced Hugging Face and Transformers offline modes, the
+default `quality` profile, and formula enrichment off. Repeated runs, including
+the post-review verification, produced identical Quality Report v2 counts.
+
+The verification command was run in a separate process with a task-specific
+temporary output directory:
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location) "src"
+$env:HF_HUB_OFFLINE = "1"
+$env:TRANSFORMERS_OFFLINE = "1"
+.venv\Scripts\python.exe -m pdftomd "NIST SP 800-30.pdf" --quality --no-open -o <temporary-output>
+```
+
+Generated benchmark outputs are intentionally not checked in.
+
+| Measure | Extraction | Serialization |
+|---|---:|---:|
+| Source tokens | 42,724 | 41,355 |
+| Target tokens | 41,355 | 41,245 |
+| Accepted transfer | 39,921 (93.44%) | 40,680 (98.37%) |
+| Accounted loss | 1,167 (2.73%) | 192 (0.46%) |
+| Unexplained loss, including substitutions | 272 (0.64%) | 47 (0.11%) |
+| Unexpected additions, including substitutions | 70 (0.17%) | 94 (0.23%) |
+| Reading-order risks | 1,364 | 436 |
+
+Structural integrity passes: 152/152 headings, 40/40 lists with 183/183 items,
+55/55 tables with 1,274/1,274 grid cells, and 7/7 decoded PNG artifacts. The
+artifacts total 178,143 bytes; none is missing, invalid, duplicated, or stale.
+The document contains no DoclingDocument hyperlinks, so link integrity is 0/0;
+this does not claim that PDF annotations were extracted.
+
+The latest warm-cache verification took 283.355 seconds end to end; the CLI's
+per-document conversion timer reported 276 seconds. The highest real Docling
+Python process `PeakWorkingSet64` from valid process samples in the first two
+offline measurement runs was 3,587,977,216 bytes (3,421.762 MiB, 3.342 GiB).
+The post-review run reconfirmed output metrics but its process-memory query was
+not available in the restricted shell. The old v1 bag-of-words value was
+99.62%, but its short-token omissions and non-occurrence-based accounting make
+it neither ground truth nor directly comparable to the v2 transfer rates.
+
 ## Deferred limitations
 
-- Structural and artifact integrity is explicitly reported as not evaluated;
-  headings, lists, tables, links, and files belong to `docs/TODO.md` section 5.
+- Structural parsing covers Docling's emitted Markdown dialect, not arbitrary
+  hand-written CommonMark extensions or HTML structure.
 - PDFium text/character offset disagreement disables spatial attribution on
   that page; no heuristic offset repair is attempted.
 - Table cells spanning several table-level provenance entries remain page
@@ -212,6 +296,7 @@ variance brittle.
 - The Markdown masker is deliberately small and deterministic, not a complete
   CommonMark parser. Unusual nested constructs, formulas, and custom extensions
   may still yield imperfect text operations.
-- The fixture's lost link annotation/repeated URL row and detached decorative
-  drop cap remain recorded Milestone A limitations; this milestone does not
-  repair serialization structure or extraction content.
+- The fixture's lost PDF link annotation/repeated URL row and detached
+  decorative drop cap remain recorded Milestone A limitations. A link annotation
+  absent from the DoclingDocument cannot be verified as Markdown serialization;
+  this milestone does not repair extraction content.

@@ -102,22 +102,26 @@ sayılar yalnızca örnektir; yeniden üretilmiş bir belge ölçümü değildir
 
 ```text
 Quality Report v2 | Extraction: transfer 98.0% (980/1000); unexplained 10; order risks 2 | Serialization: transfer 99.0% (990/1000); unexpected 5; order risks 1
-Structure: not evaluated in this milestone.
+Structure: PASS | headings 12/12; lists 3/3 (items 18/18); tables 4/4 (cells 86/86); links 2/2; images 5/5; stale 0
 ```
 
 Ayrıntısı `<ad>_report.md` dosyasına yazılır. Çıkarım (PDF metin katmanından
 DoclingDocument'a) ile serileştirme (DoclingDocument'tan görünür Markdown'a)
 ayrı token sayıları, oranlar, muhasebe eşitlikleri ve oluşum tabanlı sorun
 örnekleri taşır. Bu, metin katmanı uyum kanıtıdır; doğrulanmış belge doğruluğu
-değildir. Başlık, liste, tablo, bağlantı ve çıktı dosyası bütünlüğü henüz
-değerlendirilmez.
+değildir. Yapısal bölüm ayrıca DoclingDocument ile Markdown arasındaki başlık,
+liste, tablo hücresi ve bağlantı oluşumlarını karşılaştırır. Yerel hedeflerin
+çıktı klasörü içinde kaldığını denetler; görselleri gerçekten açıp biçim ve
+boyutlarını kaydeder, eksik/boş/geçersiz veya stale artifact'ları gösterir.
+Dış bağlantıları ağdan açmaz. Bu kontroller serileştirme bütünlüğüdür; Docling'in
+kaynak PDF'yi doğru çıkardığını tek başına kanıtlamaz.
 
 En çok işe yaradığı yer taranmış belgeler. Metin katmanı olmayan bir PDF'i
 `--fast` ile çevirirsen çıktı sessizce boş kalır; rapor bunu söyler:
 
 ```text
 Quality Report v2 | Extraction: transfer n/a (no source tokens); unexplained 0; order risks 0 | Serialization: transfer n/a (no source tokens); unexpected 0; order risks 0
-Structure: not evaluated in this milestone.
+Structure: PASS | headings 0/0; lists 0/0 (items 0/0); tables 0/0 (cells 0/0); links 0/0; images 0/0; stale 0
 WARNING: 2 pages without a text layer are unverified; --fast turned OCR off, so they may have come out empty. Coverage cannot be measured. Try again with --quality.
 ```
 
@@ -169,8 +173,9 @@ Fark tam olarak iki ayar: `--fast`, OCR ve tablo yapısı modellerini kapatır.
 
 **Kural:** taranmış belge veya tablo varsa varsayılanda bırak; düz metin
 (roman, makale, sözleşme) ise `--fast` kullan. Emin değilsen varsayılan
-seçenek hiçbir şey kaybettirmez, sadece yavaştır. Ölçüm: 95 sayfalık tablo
-ağırlıklı bir belge varsayılan profilde ~5 dakika sürdü.
+seçenek hiçbir şey kaybettirmez, sadece yavaştır. Son sıcak-cache doğrulamasında
+95 sayfalık tablo ağırlıklı NIST belgesi varsayılan profilde 276 saniyede
+dönüştü; model yükleme ve CLI kapanışı dahil uçtan uca süre 283,355 saniyeydi.
 
 `--formula` matematik formüllerini LaTeX'e çevirir. İlk kullanımda 631 MB'lık
 ek bir model iner; indirme yarıda kesilirse sonraki çalıştırmada kaldığı yerden
@@ -178,10 +183,25 @@ devam eder. Fast veya quality ile birlikte kullanılabilir.
 
 ## Ne korunur, ne kaybolur
 
-95 sayfalık NIST dokümanında eski Quality Report v1 ile ölçülen **%99,6** değeri
-tarihsel bir kapsama ölçümüdür; üç karakterden kısa sözcükleri atlayan eski
-sayaçla üretildi ve doğrulanmış dönüşüm doğruluğu değildir. Yeni sayaç sonrası
-bu belgenin sonucu Quality Report v2 tamamlandığında yeniden ölçülecek.
+95 sayfalık NIST SP 800-30 belgesi 8 Eylül 2026'da önbellekteki modellerle,
+offline ve varsayılan `--quality` profilinde Quality Report v2 ile yeniden
+ölçüldü:
+
+- Çıkarım aktarımı: **%93,44** (39.921/42.724); açıklanmış kayıp %2,73,
+  açıklanamayan kayıp %0,64 ve 1.364 okuma sırası riski.
+- Serileştirme aktarımı: **%98,37** (40.680/41.355); açıklanamayan kayıp %0,11,
+  beklenmeyen ekleme %0,23 ve 436 okuma sırası riski.
+- Yapısal bütünlük: **PASS** — 152 başlık, 40 liste/183 item, 55 tablo/1.274
+  hücre ve 7/7 geçerli PNG; eksik veya stale artifact yok.
+- Son sıcak-cache doğrulamasında uçtan uca süre 283,355 saniyeydi. İlk iki
+  offline ölçüm koşusundaki geçerli süreç örneklerinde gözlenen en yüksek
+  `PeakWorkingSet64` 3.587.977.216 bayt (3,342 GiB) oldu.
+
+Eski Quality Report v1 ile ölçülen **%99,6** yalnız tarihsel bir kapsama
+tanısıdır. Üç karakterden kısa sözcükleri atlayan ve oluşumları bire bir
+saymayan eski sayaçla üretildi; v2 aktarım oranlarıyla doğrudan karşılaştırılamaz.
+Bu değerlerin hiçbiri elle doğrulanmış ground truth olmadığı için belge
+doğruluğu yüzdesi değildir.
 
 Korunan: başlık düzeyleri, paragraf ve liste yapısı, tablo verisi, görsellerin
 metin içindeki konumu, dipnotlar. Sayfa üstbilgi/altbilgileri kasten atılır.

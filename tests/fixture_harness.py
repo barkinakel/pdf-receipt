@@ -95,6 +95,18 @@ def _assert_image_links(
         artifact = markdown_path.parent / Path(normalized)
         if not artifact.is_file() or artifact.stat().st_size == 0:
             _fail(case, fact, f"image target is missing or empty: {target!r}")
+        try:
+            from PIL import Image
+
+            with Image.open(artifact) as image:
+                width, height = image.size
+                image.verify()
+            with Image.open(artifact) as image:
+                image.load()
+        except (OSError, SyntaxError, ValueError) as exc:
+            _fail(case, fact, f"image target cannot be decoded: {target!r}: {exc}")
+        if width <= 0 or height <= 0:
+            _fail(case, fact, f"image target has invalid dimensions: {target!r}")
 
 
 def _assert_fact(

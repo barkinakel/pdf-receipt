@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from types import SimpleNamespace
 
 from pdftomd import alignment
 from pdftomd import quality_metrics as qm
 from pdftomd import quality_report as qr
+from pdftomd import structural_integrity as si
 
 
 def tokens(
@@ -49,6 +51,7 @@ def report_for(
         markdown,
         structure,
         "quality",
+        si.empty_report(),
     )
 
 
@@ -273,6 +276,7 @@ class ExplanationMetricTests(unittest.TestCase):
             "value value value",
             structure,
             "quality",
+            si.empty_report(),
         )
 
         self.assertEqual(len(structure.table_repeat_sources), 2)
@@ -302,6 +306,7 @@ class ExplanationMetricTests(unittest.TestCase):
             "",
             structure,
             "quality",
+            si.empty_report(),
         )
 
         self.assertEqual(report.serialization_metrics.explained_deletion_count, 1)
@@ -350,7 +355,7 @@ class ReportV2Tests(unittest.TestCase):
         self.assertEqual(report.extraction_metrics.source_token_count, 2)
         self.assertEqual(report.serialization_metrics.source_token_count, 1)
 
-    def test_markdown_separates_stages_and_marks_structure_not_evaluated(self) -> None:
+    def test_markdown_separates_stages_and_reports_structural_integrity(self) -> None:
         report = report_for(
             "pdf lost",
             qr.TextSource("pdf changed", 1, "#/texts/1"),
@@ -362,8 +367,9 @@ class ReportV2Tests(unittest.TestCase):
         self.assertIn("Quality Report v2", rendered)
         self.assertIn("Extraction: PDF text layer → Docling", rendered)
         self.assertIn("Serialization: Docling → Markdown", rendered)
-        self.assertIn("Structural integrity", rendered)
-        self.assertIn("not evaluated in this milestone", rendered)
+        self.assertIn("Structural and artifact integrity", rendered)
+        self.assertIn("**PASS.**", rendered)
+        self.assertIn("Valid decoded images", rendered)
         self.assertIn("not verified document accuracy", rendered)
 
     def test_issue_rendering_keeps_raw_normalized_context_and_unknowns(self) -> None:
@@ -396,9 +402,54 @@ class ReportV2Tests(unittest.TestCase):
         self.assertIn("Quality Report v2", console)
         self.assertIn("Extraction", console)
         self.assertIn("Serialization", console)
-        self.assertIn("Structure: not evaluated", console)
+        self.assertIn("Structure: PASS", console)
+        self.assertIn("images 0/0", console)
         self.assertNotIn("legacy", console.lower())
         self.assertLessEqual(len(console.splitlines()), 3)
+
+    def test_structural_issues_and_artifact_dimensions_are_rendered(self) -> None:
+        integrity = si.StructuralIntegrityReport(
+            headings=si.CountComparison(1, 1),
+            lists=si.CountComparison(0, 0),
+            list_items=si.CountComparison(0, 0),
+            tables=si.CountComparison(0, 0),
+            table_cells=si.CountComparison(0, 0),
+            links=si.CountComparison(0, 0),
+            images=si.CountComparison(1, 1),
+            issues=(
+                si.IntegrityIssue(
+                    "heading",
+                    "changed_heading",
+                    "level 2: Expected",
+                    "level 1: Expected",
+                    "Markdown line 1",
+                ),
+            ),
+            artifacts=(
+                si.ArtifactCheck(
+                    "document_artifacts/figure.png",
+                    "valid",
+                    size_bytes=123,
+                    format="PNG",
+                    width=4,
+                    height=5,
+                ),
+            ),
+        )
+        report = replace(
+            report_for("alpha", qr.TextSource("alpha", 1), "alpha"),
+            structural_integrity=integrity,
+        )
+
+        console = qr.render_console(report)
+        rendered = qr.render_markdown(report)
+
+        self.assertIn("Structure: ISSUES 1", console)
+        self.assertIn("images 1/1", console)
+        self.assertIn("changed_heading", rendered)
+        self.assertIn("Markdown line 1", rendered)
+        self.assertIn("document_artifacts/figure.png", rendered)
+        self.assertIn("4 × 5", rendered)
 
     def test_ocr_only_pages_are_unverified_with_not_applicable_extraction(self) -> None:
         report = report_for("", qr.TextSource("ocr text", 1), "ocr text")
