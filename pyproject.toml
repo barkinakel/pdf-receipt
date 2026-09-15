@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pdf-receipt"
 version = "0.1.0"
 description = "Local, offline PDF to Markdown conversion with an honest two-stage quality report."
-readme = "README.en.md"
+readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -27,7 +27,7 @@ dependencies = ["docling==2.124.0"]
 
 [project.urls]
 Homepage = "https://github.com/barkinakel/pdf-receipt"
-Documentation = "https://github.com/barkinakel/pdf-receipt/blob/main/README.en.md"
+Documentation = "https://github.com/barkinakel/pdf-receipt/blob/main/README.md"
 
 [project.scripts]
 pdf-receipt = "pdf_receipt.cli:main"

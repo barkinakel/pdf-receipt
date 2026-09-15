@@ -74,7 +74,7 @@
 
 - Before handing off any milestone, run `git diff --check`, inspect the complete
   diff, and confirm that no unrelated file changed.
-- Update `README.md`, `README.en.md`, and relevant files under `docs/` whenever
+- Update `README.md`, `README_tr.md`, and relevant files under `docs/` whenever
   public behavior, output, limitations, or commands change.
 
 ## Network, external actions, and Git
