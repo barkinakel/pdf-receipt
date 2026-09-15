@@ -13,7 +13,7 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after the completed Quality Report v2 gate.
+Current state after the completed image-resolution milestone.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -22,7 +22,8 @@ Current state after the completed Quality Report v2 gate.
 | B: Quality Report v2 metrics and explanations | 4 | done |
 | C: structural integrity and full v2 gate | 5-6 | done |
 | D: drop-cap diagnosis | 7 | done |
-| E and later | 8-10 | not started |
+| E: image scale | 8 | done |
+| F and G | 9-10 | not started |
 
 Landed for sections 1-7:
 
@@ -269,8 +270,8 @@ default `quality` profile):
 
 Quality Report v2 is complete when milestones 1-6 pass, the report documents its
 limits honestly, and the README examples match the new output. This condition is
-satisfied, and the section 7 diagnosis is also complete; section 8 is next and
-has not been started.
+satisfied, and sections 7 and 8 are also complete. Section 9 is next and has
+not been started.
 
 ## 7. Lost decorative drop caps
 
@@ -321,6 +322,28 @@ Add an opt-in `--image-scale` setting.
   summary when useful.
 - Verify that higher scales increase dimensions as expected and do not break
   Markdown image links.
+
+Completed (2026-09-15, pinned Docling 2.124.0, cached models, offline):
+
+- `--image-scale` accepts finite floats in the inclusive range `1.0` to `3.0`,
+  including fractional values such as `1.5`. This follows Docling's float field
+  while bounding resource use; the default remains `1.0` in both profiles.
+- The value reaches `PdfPipelineOptions.images_scale`; CLI and direct runtime
+  calls reject unsupported values before importing Docling or loading models.
+- Per-document completion and batch entries report conversion/export/report
+  duration (excluding runtime object creation but including lazy pipeline/model
+  initialization during conversion) and bytes of all existing artifact-folder
+  files, including stale files. Measurement failures warn without failing an
+  otherwise successful conversion. No manifest or cleanup behavior was added.
+  Directory scanning propagates access errors instead of silently reporting
+  partial or zero artifact bytes.
+- The offline live test decodes every referenced image at all four documented
+  example scales in both profiles, verifies proportional dimensions within
+  pixel rounding, and checks working forward-slash Markdown links.
+- Focused converter/CLI tests pass; full discovery reports 195 tests OK with
+  3 skips (the opt-in live tests). The separate image-scale live test passes
+  all eight profile/scale combinations. Both READMEs document the option and
+  measurement scope without adding benchmark figures.
 
 ## 9. Output manifest, atomic completion, and `--skip-existing`
 

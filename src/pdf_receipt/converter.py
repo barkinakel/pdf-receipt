@@ -6,8 +6,10 @@ what the user gets to see.
 
 from __future__ import annotations
 
+import math
 import os
 import re
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -46,6 +48,9 @@ class ConversionResult:
     output: OutputPaths
     report_summary: str | None = None
     report_error: str | None = None
+    duration_seconds: float = 0.0
+    artifact_bytes: int | None = None
+    artifact_error: str | None = None
 
 
 def long_path(path: Path) -> Path:
@@ -115,19 +120,34 @@ def plan_output_paths(
     return outputs, batch_root
 
 
-def configure_pipeline_options(options: Any, profile: Profile, formula: bool) -> Any:
+def validate_image_scale(value: str | float) -> float:
+    """Accept finite image scales within the supported resource bounds."""
+    try:
+        scale = float(value)
+    except (ValueError, TypeError):
+        raise ValueError("image scale must be a finite number from 1.0 to 3.0") from None
+    if not math.isfinite(scale) or not 1.0 <= scale <= 3.0:
+        raise ValueError("image scale must be a finite number from 1.0 to 3.0")
+    return scale
+
+
+def configure_pipeline_options(
+    options: Any, profile: Profile, formula: bool, image_scale: float = 1.0
+) -> Any:
     """Apply the selected profile to a Docling PdfPipelineOptions instance."""
     is_quality = profile == "quality"
     options.do_ocr = is_quality
     options.do_table_structure = is_quality
     options.generate_picture_images = True
+    options.images_scale = validate_image_scale(image_scale)
     options.do_formula_enrichment = formula
     return options
 
 
 def create_docling_runtime(
-    profile: Profile, formula: bool, report: bool = True
+    profile: Profile, formula: bool, report: bool = True, image_scale: float = 1.0
 ) -> DoclingRuntime:
+    image_scale = validate_image_scale(image_scale)
     # Hugging Face's Xet download path can hang on some Windows installs, and
     # plain HTTP downloading is the more reliable choice for local use.
     os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
@@ -145,7 +165,7 @@ def create_docling_runtime(
             "`python -m pip install -r requirements.txt`."
         ) from exc
 
-    options = configure_pipeline_options(PdfPipelineOptions(), profile, formula)
+    options = configure_pipeline_options(PdfPipelineOptions(), profile, formula, image_scale)
     converter = DocumentConverter(
         format_options={
             InputFormat.PDF: PdfFormatOption(pipeline_options=options),
@@ -207,12 +227,33 @@ def write_quality_report(
     return quality_report.render_console(report)
 
 
+def _artifact_bytes(directory: Path) -> int:
+    """Count artifact files without suppressing directory traversal errors."""
+    directory = long_path(directory)
+    try:
+        directory.stat()
+    except FileNotFoundError:
+        return 0
+
+    total = 0
+    pending = [directory]
+    while pending:
+        with os.scandir(pending.pop()) as entries:
+            for entry in entries:
+                if entry.is_dir(follow_symlinks=False):
+                    pending.append(Path(entry.path))
+                elif entry.is_file():
+                    total += entry.stat().st_size
+    return total
+
+
 def convert_pdf(
     runtime: DoclingRuntime,
     pdf_path: Path,
     output: OutputPaths,
 ) -> ConversionResult:
     """Convert one PDF and export Markdown/JSON from the same Docling result."""
+    started = time.monotonic()
     markdown_path = long_path(output.markdown)
     long_path(output.directory).mkdir(parents=True, exist_ok=True)
     relative_artifacts = Path(output.artifacts.name)
@@ -230,14 +271,23 @@ def convert_pdf(
     )
     normalize_artifact_links(markdown_path, output.artifacts.name)
 
-    if not runtime.report:
-        return ConversionResult(output)
+    summary = report_error = artifact_error = None
+    artifact_bytes = None
+    if runtime.report:
+        # A broken report never fails the conversion; it only raises a warning.
+        try:
+            summary = write_quality_report(
+                pdf_path, output.markdown, result.document, output, runtime.profile
+            )
+        except Exception as exc:
+            report_error = str(exc)
 
-    # A broken report never fails the conversion; it only raises a warning.
+    # Include all files currently in the artifact folder, including stale files.
     try:
-        summary = write_quality_report(
-            pdf_path, output.markdown, result.document, output, runtime.profile
-        )
-    except Exception as exc:
-        return ConversionResult(output, report_error=str(exc))
-    return ConversionResult(output, report_summary=summary)
+        artifact_bytes = _artifact_bytes(output.artifacts)
+    except OSError as exc:
+        artifact_error = str(exc)
+    return ConversionResult(
+        output, summary, report_error, time.monotonic() - started,
+        artifact_bytes, artifact_error,
+    )

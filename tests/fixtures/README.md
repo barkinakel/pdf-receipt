@@ -29,6 +29,16 @@ With offline mode set, a missing model is a visible test failure instead of a
 surprise download. The scanned fixture requires the quality profile; the two
 born-digital fixtures use the same profile so the run shares one runtime.
 
+The image-scale integration test additionally converts `structure_layout.pdf`
+at scales `1`, `1.5`, `2`, and `3` in both profiles. It decodes every Markdown
+image target, checks relative forward-slash links and proportional dimensions
+within pixel-rounding tolerance, and prints duration and artifact bytes. Run
+only this check with the same offline environment variables:
+
+```powershell
+.venv\Scripts\python.exe -m unittest tests.integration.test_docling_fixtures.LiveDoclingFixtureTests.test_image_scales_increase_dimensions_and_preserve_links
+```
+
 The structure fixture deliberately places its two-column text in scrambled PDF
 content-stream order; its ordered fact requires the spatial reading order. Its
 current Docling output also records two explicit, accepted limitations rather

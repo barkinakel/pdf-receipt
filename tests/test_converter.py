@@ -24,6 +24,22 @@ def output_paths(root: Path, stem: str = "source") -> converter.OutputPaths:
 
 
 class PipelineOptionsTests(unittest.TestCase):
+    def test_image_scale_defaults_and_supported_values(self) -> None:
+        self.assertEqual(converter.configure_pipeline_options(
+            SimpleNamespace(), "quality", False).images_scale, 1.0)
+        for profile in ("fast", "quality"):
+            for scale in (1.0, 1.5, 2.0, 3.0):
+                with self.subTest(profile=profile, scale=scale):
+                    options = converter.configure_pipeline_options(
+                        SimpleNamespace(), profile, False, scale)
+                    self.assertEqual(options.images_scale, scale)
+                    self.assertTrue(options.generate_picture_images)
+
+    def test_invalid_scales_fail_before_docling_imports(self) -> None:
+        for scale in (0, -1, 0.99, 3.01, float("nan"), float("inf"), "bad"):
+            with self.subTest(scale=scale), self.assertRaisesRegex(ValueError, "1.0 to 3.0"):
+                converter.create_docling_runtime("fast", False, image_scale=scale)
+
     def test_quality_enables_ocr_tables_and_formula_when_requested(self) -> None:
         options = SimpleNamespace()
 
@@ -123,6 +139,31 @@ class OutputPlanningTests(unittest.TestCase):
 
 
 class ExportTests(unittest.TestCase):
+    def test_statistics_include_nested_artifacts_and_exclude_other_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir).resolve()
+            output = output_paths(root)
+            nested = output.artifacts / "nested"
+            nested.mkdir(parents=True)
+            (nested / "image.png").write_bytes(b"12345")
+            (output.artifacts / "old.png").write_bytes(b"123")
+            runtime, _ = self._runtime()
+            with patch("pdf_receipt.converter.time.monotonic", side_effect=[10, 12.5]):
+                result = converter.convert_pdf(runtime, root / "source.pdf", output)
+            self.assertEqual(result.artifact_bytes, 8)
+            self.assertEqual(result.duration_seconds, 2.5)
+
+    def test_artifact_measurement_failure_is_nonfatal(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir).resolve()
+            runtime, _ = self._runtime()
+            output = output_paths(root)
+            output.artifacts.mkdir(parents=True)
+            with patch("os.scandir", side_effect=PermissionError("cannot inspect artifacts")):
+                result = converter.convert_pdf(runtime, root / "source.pdf", output)
+            self.assertIsNone(result.artifact_bytes)
+            self.assertEqual(result.artifact_error, "cannot inspect artifacts")
+
     def _write_markdown(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(

@@ -13,6 +13,29 @@ from pdf_receipt import cli, converter
 
 
 class ArgumentTests(unittest.TestCase):
+    def test_image_scale_validation(self) -> None:
+        self.assertEqual(cli.parse_args([]).image_scale, 1.0)
+        for value in ("1", "1.5", "2", "3"):
+            self.assertEqual(cli.parse_args(["--image-scale", value]).image_scale, float(value))
+        for value in ("0", "-1", "0.5", "3.01", "99999", "nan", "inf", "-inf", "bad", ""):
+            stderr = StringIO()
+            with self.subTest(value=value), redirect_stderr(stderr), self.assertRaises(SystemExit) as error:
+                cli.parse_args(["--image-scale=" + value])
+            self.assertEqual(error.exception.code, 2)
+            self.assertIn("finite number from 1.0 to 3.0", stderr.getvalue())
+
+    def test_result_statistics_in_single_and_batch_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pdfs = [touch_pdf(Path(temp_dir) / name) for name in ("one.pdf", "two.pdf")]
+            def convert(runtime, pdf, output):
+                return converter.ConversionResult(output, duration_seconds=2.5, artifact_bytes=123)
+            for inputs in (pdfs[:1], pdfs):
+                run = run_main(["--no-open", *map(str, inputs)], convert_stub=convert)
+                self.assertEqual(run.exit_code, 0)
+                self.assertIn("2.50 s; artifact bytes: 123", run.stdout.getvalue())
+                if len(inputs) > 1:
+                    self.assertIn("artifact bytes: 123", run.stdout.getvalue().split("Summary:")[1])
+
     def test_defaults_to_quality_report_and_open_output(self) -> None:
         args = cli.parse_args(["document.pdf"])
 
@@ -299,7 +322,7 @@ class MainFlowTests(unittest.TestCase):
             self.assertEqual(run.convert.call_count, 3)
             run.open_folder.assert_called_once_with(root / "pdfmd_output")
             # A single DocumentConverter instance is reused for every document.
-            run.runtime.assert_called_once_with("quality", False, True)
+            run.runtime.assert_called_once_with("quality", False, True, image_scale=1.0)
             self.assertEqual(
                 {call.args[0] for call in run.convert.call_args_list}, {runtime}
             )
@@ -349,10 +372,10 @@ class MainFlowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             pdf = touch_pdf(Path(temp_dir).resolve() / "one.pdf")
 
-            run = run_main(["--fast", "--formula", "--no-report", str(pdf)])
+            run = run_main(["--fast", "--formula", "--no-report", "--image-scale", "1.5", str(pdf)])
 
             self.assertEqual(run.exit_code, 0)
-            run.runtime.assert_called_once_with("fast", True, False)
+            run.runtime.assert_called_once_with("fast", True, False, image_scale=1.5)
 
     def test_open_failure_is_only_a_warning(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

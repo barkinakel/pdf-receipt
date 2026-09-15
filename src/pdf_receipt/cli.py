@@ -5,16 +5,17 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-import time
 from dataclasses import dataclass
 from pathlib import Path
 
 from .converter import (
+    ConversionResult,
     DoclingRuntime,
     OutputPaths,
     convert_pdf,
     create_docling_runtime,
     plan_output_paths,
+    validate_image_scale,
     validate_pdf,
 )
 
@@ -25,6 +26,13 @@ def configure_console() -> None:
         reconfigure = getattr(stream, "reconfigure", None)
         if reconfigure is not None:
             reconfigure(encoding="utf-8", errors="replace")
+
+
+def _image_scale_argument(value: str) -> float:
+    try:
+        return validate_image_scale(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -46,6 +54,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help=(
             "Output folder. For a single PDF this is the target folder itself; "
             "for several PDFs it is the common root the document folders go into."
+        ),
+    )
+
+    parser.add_argument(
+        "--image-scale",
+        type=_image_scale_argument,
+        default=1.0,
+        metavar="SCALE",
+        help=(
+            "Image resolution scale: finite numbers from 1.0 to 3.0 inclusive "
+            "(default: 1.0; examples: 1, 1.5, 2, 3). Higher values use more "
+            "memory, time, and disk space."
         ),
     )
 
@@ -166,10 +186,9 @@ def _prepare_jobs(
     return jobs, failures
 
 
-def _convert_one(runtime: DoclingRuntime, job: Job, total: int) -> OutputPaths:
+def _convert_one(runtime: DoclingRuntime, job: Job, total: int) -> ConversionResult:
     """Convert a single document, printing progress as it goes."""
     prefix = f"[{job.position}/{total}] " if total > 1 else ""
-    started = time.monotonic()
     print(
         f"{prefix}Converting: {job.pdf_path.name}"
         " (may take a few minutes depending on the page count)",
@@ -185,28 +204,37 @@ def _convert_one(runtime: DoclingRuntime, job: Job, total: int) -> OutputPaths:
             file=sys.stderr,
         )
 
-    elapsed = int(time.monotonic() - started)
-    print(f"{prefix}Done ({elapsed} s): {result.output.directory}", flush=True)
+    if result.artifact_error:
+        print(f"Warning: could not measure artifact bytes: {result.artifact_error}",
+              file=sys.stderr)
+    print(f"{prefix}Done ({_result_statistics(result)}): {result.output.directory}",
+          flush=True)
     if total == 1:
         print(f"Markdown: {result.output.markdown}")
-    return result.output
+    return result
+
+
+def _result_statistics(result: ConversionResult) -> str:
+    size = str(result.artifact_bytes) if result.artifact_bytes is not None else "unavailable"
+    return f"{result.duration_seconds:.2f} s; artifact bytes: {size}"
 
 
 def _print_batch_summary(
-    successes: list[tuple[Path, OutputPaths]], failures: list[tuple[Path, str]]
+    successes: list[tuple[Path, ConversionResult]], failures: list[tuple[Path, str]]
 ) -> None:
     print(f"\nSummary: {len(successes)} succeeded, {len(failures)} failed.")
-    for pdf_path, output in successes:
-        print(f"  ✓ {pdf_path.name} → {output.directory}")
+    for pdf_path, result in successes:
+        print(f"  ✓ {pdf_path.name} → {result.output.directory} "
+              f"({_result_statistics(result)})")
     for pdf_path, error in failures:
         print(f"  ✗ {pdf_path.name}: {error}", file=sys.stderr)
 
 
 def _open_when_done(
-    successes: list[tuple[Path, OutputPaths]], folder_to_open: Path, single: bool
+    successes: list[tuple[Path, ConversionResult]], folder_to_open: Path, single: bool
 ) -> None:
     """Show the results in Explorer; failing to do so is not a conversion error."""
-    target = successes[0][1].directory if single else folder_to_open
+    target = successes[0][1].output.directory if single else folder_to_open
     try:
         open_output_folder(target)
     except OSError as exc:
@@ -233,7 +261,7 @@ def main(argv: list[str] | None = None) -> int:
     outputs, folder_to_open = plan_output_paths(input_paths, args.output)
     total = len(input_paths)
     jobs, failures = _prepare_jobs(input_paths, outputs)
-    successes: list[tuple[Path, OutputPaths]] = []
+    successes: list[tuple[Path, ConversionResult]] = []
 
     if not jobs:
         if total > 1:
@@ -248,7 +276,9 @@ def main(argv: list[str] | None = None) -> int:
         flush=True,
     )
     try:
-        runtime = create_docling_runtime(args.profile, args.formula, args.report)
+        runtime = create_docling_runtime(
+            args.profile, args.formula, args.report, image_scale=args.image_scale
+        )
     except Exception as exc:
         print(f"Could not start the converter: {exc}", file=sys.stderr)
         return 1

@@ -174,6 +174,27 @@ render as `n/a`. The old bag-of-words percentage survives only as
 limits, and synthetic measurements are in
 [`docs/ALIGNMENT.md`](docs/ALIGNMENT.md).
 
+## Image resolution
+
+Use `--image-scale 2` for higher-resolution image artifacts with either profile.
+The default is `1.0`, preserving the existing resolution. Any finite number from
+`1.0` to `3.0` inclusive is accepted, including `1.5`; values outside that range,
+NaN, and infinity are rejected before loading models.
+
+Higher scales increase image width and height, with pixel rounding, and may use
+more memory, conversion time, and disk space. They do not recover detail missing
+from the source image. Markdown still uses relative, forward-slash image links.
+
+The completion line and each successful batch-summary entry show elapsed seconds
+and total artifact bytes, also with `--no-report`. Duration covers conversion,
+exports, and the optional report. Runtime object creation is excluded, but
+Docling's lazy pipeline/model initialization during the first conversion is
+included, so the first document can take longer. Artifact bytes
+count all files currently under the document's artifact folder, including stale
+files from earlier runs; Markdown, JSON, and the report are excluded. An empty
+or absent artifact folder counts as zero. A measurement error shows a warning
+and an unavailable size without failing the conversion.
+
 ## Which profile?
 
 | | `--fast` | default (`--quality`) |

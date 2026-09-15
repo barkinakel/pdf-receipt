@@ -163,6 +163,28 @@ yüzdesi yalnızca `legacy_coverage` tanı geçmişi olarak kalır. İşlem ve m
 sözleşmesi, sınırlar ve sentetik ölçümler
 [`docs/ALIGNMENT.md`](docs/ALIGNMENT.md) içinde açıklanır.
 
+## Görsel çözünürlüğü
+
+Her iki profilde de daha yüksek çözünürlüklü görseller için `--image-scale 2`
+kullan. Varsayılan `1.0`, mevcut çözünürlüğü korur. `1.0` ile `3.0` arasındaki
+sonlu sayılar, sınırlar ve `1.5` dahil, kabul edilir; aralık dışındaki değerler,
+NaN ve sonsuzluk modeller yüklenmeden reddedilir.
+
+Daha yüksek ölçekler, piksel yuvarlamasıyla görselin genişliğini ve yüksekliğini
+artırır; daha fazla bellek, dönüşüm süresi ve disk alanı gerektirebilir. Kaynak
+görselde bulunmayan ayrıntıları geri getirmez. Markdown görsel bağlantıları göreli
+yollarla ve ileri eğik çizgilerle yazılmaya devam eder.
+
+Bitiş satırı ve toplu özetteki her başarılı sonuç, `--no-report` kullanıldığında
+da geçen saniyeyi ve toplam artifact baytını gösterir. Süre; dönüşümü, dışa
+aktarmayı ve isteğe bağlı raporu kapsar. Çalışma nesnesinin oluşturulması dahil
+değildir; ancak Docling'in ilk dönüşüm sırasında yaptığı pipeline/model hazırlığı
+dahildir. Bu nedenle ilk belgenin süresi daha uzun olabilir.
+Artifact boyutu, önceki çalışmalardan kalan dosyalar dahil belgenin artifact
+klasöründeki bütün dosyaları sayar; Markdown, JSON ve rapor dahil değildir. Boş
+veya bulunmayan artifact klasörü sıfır sayılır. Ölçüm hatasında uyarı ve boyutun
+alınamadığı bilgisi gösterilir; dönüşüm başarısız sayılmaz.
+
 ## Hangi profil?
 
 | | `--fast` | varsayılan (`--quality`) |

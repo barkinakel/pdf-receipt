@@ -131,6 +131,42 @@ class LiveDoclingFixtureTests(unittest.TestCase):
                                 sorted(markdown_positions),
                             )
 
+    def test_image_scales_increase_dimensions_and_preserve_links(self) -> None:
+        from PIL import Image
+
+        case = next(case for case in load_fixture_cases(FIXTURES)
+                    if case.pdf_path.name == "structure_layout.pdf")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for profile in ("fast", "quality"):
+                baseline = None
+                for scale in (1.0, 1.5, 2.0, 3.0):
+                    with self.subTest(profile=profile, scale=scale):
+                        runtime = converter.create_docling_runtime(
+                            profile, False, report=False, image_scale=scale)
+                        outputs, _ = converter.plan_output_paths(
+                            [case.pdf_path], Path(temp_dir) / f"{profile}_{scale}")
+                        result = converter.convert_pdf(runtime, case.pdf_path, outputs[0])
+                        markdown = result.output.markdown.read_text(encoding="utf-8")
+                        links = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", markdown)
+                        self.assertTrue(links)
+                        dimensions = []
+                        for link in links:
+                            self.assertNotIn("\\", link)
+                            path = result.output.directory / link
+                            self.assertTrue(path.resolve().is_relative_to(result.output.directory.resolve()))
+                            with Image.open(path) as image:
+                                image.load()
+                                dimensions.append(image.size)
+                        if baseline is None:
+                            baseline = dimensions
+                        self.assertEqual(len(dimensions), len(baseline))
+                        for original, scaled in zip(baseline, dimensions):
+                            for before, after in zip(original, scaled):
+                                self.assertAlmostEqual(after, before * scale, delta=2)
+                        self.assertGreater(result.artifact_bytes, 0)
+                        print(f"Image scale {profile} {scale}: {dimensions}; "
+                              f"{result.duration_seconds:.2f} s; {result.artifact_bytes} bytes")
+
     def test_drop_cap_pipeline_stage_diagnosis(self) -> None:
         from docling.datamodel.base_models import InputFormat
         from docling.datamodel.pipeline_options import PdfPipelineOptions
