@@ -7,7 +7,6 @@ A personal tool that converts PDF files to Markdown locally. It runs on Docling,
 so page layout, tables and scanned text are handled by machine learning models.
 Nothing is uploaded anywhere; everything happens on this computer.
 
-A Turkish version of this document is available in [README_tr.md](README_tr.md).
 
 ## Installation
 
