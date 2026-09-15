@@ -178,19 +178,16 @@ limits, and synthetic measurements are in
 
 | | `--fast` | default (`--quality`) |
 |---|---|---|
-| Speed (5 pages) | 13 s | 30 s |
 | Text and images | same | same |
 | Tables | rows and columns are lost, cells pile into one line | real rows and columns |
 | Scanned page | comes out empty | OCR reads the text |
 
 The difference is exactly two settings: `--fast` turns off OCR and the table
-structure model.
+structure model, which is the only reason it finishes sooner.
 
 **Rule of thumb:** keep the default for anything scanned or table-heavy, and use
 `--fast` for plain prose such as novels, articles, and contract text. When in
-doubt, the default loses nothing — it is only slower. In the latest warm-cache
-run, the 95-page, table-heavy NIST document converted in 276 seconds, or 283.355
-seconds end to end including model loading and shutdown.
+doubt, the default loses nothing — it is only slower.
 
 `--formula` converts formulas to LaTeX. Its first run downloads an extra 631 MB
 model, and resumes the download if it is interrupted. It works with either
@@ -198,24 +195,12 @@ profile.
 
 ## What survives and what does not
 
-The 95-page NIST SP 800-30 document was remeasured on September 8, 2026 with
-cached models, offline, and the default `--quality` profile:
+Benchmark numbers are being re-measured and will be published here once that run
+is finished. Note in advance that no transfer rate this tool reports is a
+document-accuracy percentage: measuring that would need manually verified ground
+truth, which no benchmark run here has.
 
-- Extraction transfer: **93.44%** (39,921/42,724), with 2.73% accounted loss,
-  0.64% unexplained loss, and 1,364 reading-order risks.
-- Serialization transfer: **98.37%** (40,680/41,355), with 0.11% unexplained
-  loss, 0.23% unexpected additions, and 436 reading-order risks.
-- Structural integrity: **PASS** — 152 headings, 40 lists/183 items, 55
-  tables/1,274 cells, and 7/7 valid PNGs, with no missing or stale artifacts.
-- The run took 283.355 seconds end to end. The highest `PeakWorkingSet64` across
-  valid process samples in the first two offline runs was 3,587,977,216 bytes
-  (3.342 GiB).
-
-None of these is a document-accuracy percentage, because this run has no manually
-verified ground truth. The historical **99.6%** from Quality Report v1 is kept
-only as diagnostic history: its counter ignored tokens shorter than three
-characters and did not match occurrences one-to-one, so it is not comparable with
-the v2 rates.
+The qualitative picture does not depend on those numbers:
 
 **Kept:** heading levels, paragraph and list structure, table data, the position
 of images within the text, and footnotes. Page headers and footers are dropped on

@@ -167,18 +167,16 @@ sözleşmesi, sınırlar ve sentetik ölçümler
 
 | | `--fast` | varsayılan (`--quality`) |
 |---|---|---|
-| Hız (5 sayfa) | 13 sn | 30 sn |
 | Metin ve görseller | aynı | aynı |
 | Tablolar | satır/sütun kaybolur, hücreler tek satıra yığılır | gerçek satır ve sütunlar |
 | Taranmış sayfa | boş çıkar | OCR ile metin çıkar |
 
-Fark tam olarak iki ayar: `--fast`, OCR ve tablo yapısı modellerini kapatır.
+Fark tam olarak iki ayar: `--fast`, OCR ve tablo yapısı modellerini kapatır;
+daha hızlı bitmesinin tek sebebi de bu.
 
 **Kural:** taranmış belge veya tablo varsa varsayılanda bırak; düz metin
 (roman, makale, sözleşme) ise `--fast` kullan. Emin değilsen varsayılan
-seçenek hiçbir şey kaybettirmez, sadece yavaştır. Son sıcak-cache doğrulamasında
-95 sayfalık tablo ağırlıklı NIST belgesi varsayılan profilde 276 saniyede
-dönüştü; model yükleme ve CLI kapanışı dahil uçtan uca süre 283,355 saniyeydi.
+seçenek hiçbir şey kaybettirmez, sadece yavaştır.
 
 `--formula` matematik formüllerini LaTeX'e çevirir. İlk kullanımda 631 MB'lık
 ek bir model iner; indirme yarıda kesilirse sonraki çalıştırmada kaldığı yerden
@@ -186,25 +184,12 @@ devam eder. Fast veya quality ile birlikte kullanılabilir.
 
 ## Ne korunur, ne kaybolur
 
-95 sayfalık NIST SP 800-30 belgesi 8 Eylül 2026'da önbellekteki modellerle,
-offline ve varsayılan `--quality` profilinde Quality Report v2 ile yeniden
-ölçüldü:
+Ölçüm sonuçları yeniden alınıyor; koşu bittiğinde buraya yazılacak. Şimdiden
+belirtmek gerekir ki bu aracın raporladığı hiçbir aktarım oranı belge doğruluğu
+yüzdesi değildir: bunu ölçmek elle doğrulanmış ground truth gerektirir ve
+buradaki hiçbir koşuda öyle bir referans yok.
 
-- Çıkarım aktarımı: **%93,44** (39.921/42.724); açıklanmış kayıp %2,73,
-  açıklanamayan kayıp %0,64 ve 1.364 okuma sırası riski.
-- Serileştirme aktarımı: **%98,37** (40.680/41.355); açıklanamayan kayıp %0,11,
-  beklenmeyen ekleme %0,23 ve 436 okuma sırası riski.
-- Yapısal bütünlük: **PASS** — 152 başlık, 40 liste/183 item, 55 tablo/1.274
-  hücre ve 7/7 geçerli PNG; eksik veya stale artifact yok.
-- Son sıcak-cache doğrulamasında uçtan uca süre 283,355 saniyeydi. İlk iki
-  offline ölçüm koşusundaki geçerli süreç örneklerinde gözlenen en yüksek
-  `PeakWorkingSet64` 3.587.977.216 bayt (3,342 GiB) oldu.
-
-Eski Quality Report v1 ile ölçülen **%99,6** yalnız tarihsel bir kapsama
-tanısıdır. Üç karakterden kısa sözcükleri atlayan ve oluşumları bire bir
-saymayan eski sayaçla üretildi; v2 aktarım oranlarıyla doğrudan karşılaştırılamaz.
-Bu değerlerin hiçbiri elle doğrulanmış ground truth olmadığı için belge
-doğruluğu yüzdesi değildir.
+Niteliksel tablo bu sayılara bağlı değil:
 
 Korunan: başlık düzeyleri, paragraf ve liste yapısı, tablo verisi, görsellerin
 metin içindeki konumu, dipnotlar. Sayfa üstbilgi/altbilgileri kasten atılır.
