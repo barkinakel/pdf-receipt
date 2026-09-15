@@ -231,7 +231,8 @@ src/pdftomd/
 ├── converter.py       the Docling conversion and the output paths
 ├── quality_report.py  collects evidence and renders Quality Report v2
 ├── quality_metrics.py per-stage v2 counts, rates, and accounting identities
-└── alignment.py       bounded two-stage occurrence alignment
+├── alignment.py       bounded two-stage occurrence alignment
+└── structural_integrity.py  heading, list, table, link, and image integrity
 tests/                 one test file per module
 tests/fixtures/        PDF regression corpus and machine-checkable facts
 docs/                  notes and open work
@@ -249,3 +250,11 @@ installation step is needed.
 This fast command skips the live Docling corpus test. After the initial setup
 has cached all models, the fully offline integration instructions are in
 [`tests/fixtures/README.md`](tests/fixtures/README.md).
+
+## License
+
+[MIT](LICENSE). You may use, modify, and distribute this freely; the software is
+provided without any warranty.
+
+The conversion engine is [Docling](https://github.com/docling-project/docling),
+which is distributed separately under its own license.

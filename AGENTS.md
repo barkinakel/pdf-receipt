@@ -85,8 +85,13 @@
 - Ask before destructive replacement, removal of material outputs, or any action
   that could affect files outside the repository or a task-specific temporary
   directory.
-- GitHub publishing is deferred. Do not add a remote, push, publish, open a pull
-  request, or otherwise send repository content externally.
+- The project is published at `https://github.com/barkinakel/pdftomd` under the
+  MIT license. The `origin` remote is already configured.
+- Do not push, publish, open a pull request, or otherwise send repository content
+  externally unless the user's current prompt explicitly authorizes that action.
+  Pushing is user-initiated; preparing commits locally is not.
+- Treat every file in the repository as publicly visible. Never commit
+  credentials, tokens, personal data, or licensed third-party material.
 - Create local commits only when the user's current prompt explicitly authorizes
   them. Keep one cohesive commit per completed milestone; do not amend or rewrite
   existing commits unless explicitly requested.

@@ -229,7 +229,8 @@ src/pdftomd/
 ├── converter.py       Docling ile dönüşüm ve çıktı yolları
 ├── quality_report.py  kanıt toplama ve Quality Report v2 üretimi
 ├── quality_metrics.py aşama başına v2 sayaçları, oranları ve muhasebe eşitlikleri
-└── alignment.py       sınırlı iki aşamalı oluşum hizalaması
+├── alignment.py       sınırlı iki aşamalı oluşum hizalaması
+└── structural_integrity.py  başlık, liste, tablo, bağlantı ve görsel bütünlüğü
 tests/                 her modül için ayrı test dosyası
 tests/fixtures/        PDF regresyon corpus'u ve makinece denetlenen gerçekler
 docs/                  notlar ve yapılacaklar (İngilizce)
@@ -247,3 +248,11 @@ docs/                  notlar ve yapılacaklar (İngilizce)
 Bu hızlı komut canlı Docling corpus testini atlar. Modeller ilk kurulumda önbelleğe
 alındıktan sonra tamamen çevrimdışı entegrasyon çalıştırma adımları
 [`tests/fixtures/README.md`](tests/fixtures/README.md) içinde.
+
+## Lisans
+
+[MIT](LICENSE). Serbestçe kullanabilir, değiştirebilir ve dağıtabilirsiniz;
+yazılım herhangi bir garanti olmaksızın sunulur.
+
+Dönüşüm motoru [Docling](https://github.com/docling-project/docling)'dir ve
+kendi lisansı altında ayrıca dağıtılır.

@@ -1,7 +1,9 @@
 # Development plan
 
-GitHub publishing is deferred. Development continues in the existing local Git
-repository. The baseline is commit `569a7a0`; all 59 unit tests pass.
+The project is published at `https://github.com/barkinakel/pdftomd` under the
+MIT license. Development continues in this repository; pushing remains a
+user-initiated action. The baseline is commit `569a7a0`; all 59 unit tests
+passed at that point.
 
 This plan is ordered. Finish and verify one milestone before starting the next
 one. Quality Report v2 is the first product goal because the current
@@ -79,7 +81,7 @@ artifact integrity; its detailed measurements are recorded in
   pass, relevant documentation is updated, and `git diff` contains no unrelated
   changes.
 - If local commits are authorized, create one focused commit per completed
-  milestone. Do not publish or push anything until GitHub work is resumed.
+  milestone. Pushing to `origin` stays a user-initiated action.
 
 ## 1. Regression contract and fixture foundation
 
