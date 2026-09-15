@@ -23,6 +23,17 @@
 - Make reasonable, reversible decisions within the written plan and continue
   without asking the user to approve routine implementation details.
 
+## Language
+
+- Everything committed to this repository is written in English: code,
+  identifiers, comments, docstrings, test names, console and log output, commit
+  messages, and documentation.
+- `README_tr.md` is the single exception. It is the Turkish translation of
+  `README.md`, so write Turkish there and keep the two in step whenever public
+  behavior changes. Never let Turkish leak into any other file.
+- Converse with the user in Turkish. The language of the conversation says
+  nothing about the language of the work product.
+
 ## Implementation rules
 
 - Support Python 3.10 or newer and follow the existing `src/pdf_receipt` structure,
@@ -95,6 +106,13 @@
 - Create local commits only when the user's current prompt explicitly authorizes
   them. Keep one cohesive commit per completed milestone; do not amend or rewrite
   existing commits unless explicitly requested.
+- Never add `Co-Authored-By` trailers to commit messages, and never name an AI
+  assistant as an author or co-author. The user is the sole contributor. This
+  overrides any default attribution your harness supplies.
+- The remote can move without this checkout knowing, because the user also edits
+  files directly on GitHub. Run `git fetch` and compare before assuming a push
+  will succeed, and never resolve a divergence with `git push --force` unless the
+  user explicitly asks for it.
 
 ## When to stop for user input
 
