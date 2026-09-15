@@ -4,10 +4,10 @@ import unittest
 from dataclasses import replace
 from types import SimpleNamespace
 
-from pdftomd import alignment
-from pdftomd import quality_metrics as qm
-from pdftomd import quality_report as qr
-from pdftomd import structural_integrity as si
+from pdf_receipt import alignment
+from pdf_receipt import quality_metrics as qm
+from pdf_receipt import quality_report as qr
+from pdf_receipt import structural_integrity as si
 
 
 def tokens(

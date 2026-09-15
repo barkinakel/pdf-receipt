@@ -249,7 +249,7 @@ temporary output directory:
 $env:PYTHONPATH = Join-Path (Get-Location) "src"
 $env:HF_HUB_OFFLINE = "1"
 $env:TRANSFORMERS_OFFLINE = "1"
-.venv\Scripts\python.exe -m pdftomd "NIST SP 800-30.pdf" --quality --no-open -o <temporary-output>
+.venv\Scripts\python.exe -m pdf_receipt "NIST SP 800-30.pdf" --quality --no-open -o <temporary-output>
 ```
 
 Generated benchmark outputs are intentionally not checked in.

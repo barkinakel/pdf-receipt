@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from pdftomd import structural_integrity as integrity
+from pdf_receipt import structural_integrity as integrity
 
 
 def label(value: str) -> SimpleNamespace:
@@ -390,7 +390,7 @@ class StructuralIntegrityTests(unittest.TestCase):
             )
 
             with patch(
-                "pdftomd.structural_integrity._inspect_local_link",
+                "pdf_receipt.structural_integrity._inspect_local_link",
                 side_effect=AssertionError("external targets must not be opened"),
             ):
                 report = self.evaluate(root, doc, markdown)
@@ -546,7 +546,7 @@ class StructuralIntegrityTests(unittest.TestCase):
                     self.assertIn(expected_code, {issue.code for issue in report.issues})
 
             with patch(
-                "pdftomd.structural_integrity._decode_image",
+                "pdf_receipt.structural_integrity._decode_image",
                 side_effect=PermissionError("denied"),
             ):
                 report = self.evaluate(
@@ -626,7 +626,7 @@ class StructuralIntegrityTests(unittest.TestCase):
                     return outside / integrity._normal_path(path).name
 
                 with patch(
-                    "pdftomd.structural_integrity._resolve_artifact_entry",
+                    "pdf_receipt.structural_integrity._resolve_artifact_entry",
                     side_effect=resolved_entry,
                 ):
                     report = self.evaluate(root, document(), "")
@@ -649,7 +649,7 @@ class StructuralIntegrityTests(unittest.TestCase):
             save_png(artifacts / "loop.png")
 
             with patch(
-                "pdftomd.structural_integrity._resolve_artifact_entry",
+                "pdf_receipt.structural_integrity._resolve_artifact_entry",
                 side_effect=RuntimeError("symlink loop"),
             ):
                 report = self.evaluate(root, document(), "")

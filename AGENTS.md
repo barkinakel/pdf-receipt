@@ -25,7 +25,7 @@
 
 ## Implementation rules
 
-- Support Python 3.10 or newer and follow the existing `src/pdftomd` structure,
+- Support Python 3.10 or newer and follow the existing `src/pdf_receipt` structure,
   type-hint style, dataclasses, and standard-library `unittest` tests.
 - Keep Docling imports lazy where practical so unit tests and basic CLI parsing
   do not load models unnecessarily.
@@ -85,7 +85,7 @@
 - Ask before destructive replacement, removal of material outputs, or any action
   that could affect files outside the repository or a task-specific temporary
   directory.
-- The project is published at `https://github.com/barkinakel/pdftomd` under the
+- The project is published at `https://github.com/barkinakel/pdf-receipt` under the
   MIT license. The `origin` remote is already configured.
 - Do not push, publish, open a pull request, or otherwise send repository content
   externally unless the user's current prompt explicitly authorizes that action.

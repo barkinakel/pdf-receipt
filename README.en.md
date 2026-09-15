@@ -1,4 +1,7 @@
-# PDF to Markdown
+# pdf-receipt
+
+Local, offline PDF to Markdown conversion that reports **exactly what it lost**,
+page by page, with evidence.
 
 A personal tool that converts PDF files to Markdown locally. It runs on Docling,
 so page layout, tables and scanned text are handled by machine learning models.
@@ -11,7 +14,7 @@ This is the English version of the documentation. The Turkish original is
 
 You need Python 3.10+ on Windows (tick "Add python.exe to PATH" when installing
 it from python.org). Then run `install.bat` once: it creates the virtual
-environment, downloads Docling, and adds `pdftomd` to the Windows "Send to"
+environment, downloads Docling, and adds `pdf-receipt` to the Windows "Send to"
 menu. This can take a few minutes the first time. Docling also downloads its own
 models during the first conversion, so setup and the first run need an internet
 connection; everything after that is offline. Running `install.bat` again keeps
@@ -19,13 +22,13 @@ the existing environment and packages; it does not reinstall them from scratch.
 
 ## Usage
 
-**Drag and drop:** drop one or more PDFs onto `pdftomd.bat`. A console window
+**Drag and drop:** drop one or more PDFs onto `pdf-receipt.bat`. A console window
 opens, prints its progress, and opens the output folder in Explorer when it is
 done. If something fails the window stays open so you can read the message.
 
-**Selected files anywhere:** `install.bat` adds a `pdftomd` shortcut to the
+**Selected files anywhere:** `install.bat` adds a `pdf-receipt` shortcut to the
 Windows "Send to" menu. Select any number of PDFs in Explorer, right-click, then
-choose Send to → pdftomd. On Windows 11, "Send to" may be under "Show more
+choose Send to → pdf-receipt. On Windows 11, "Send to" may be under "Show more
 options". Only the selected files are converted, so if a folder contains four
 PDFs you can select two and process just those two. If you installed the tool
 before this shortcut was added, run `install.bat` again; installed dependencies
@@ -34,15 +37,15 @@ are reused.
 **Command line:**
 
 ```powershell
-.\pdftomd.bat                                             # every PDF in this folder
-.\pdftomd.bat --yes                                       # same, without confirmation
-.\pdftomd.bat "C:\Docs\sample.pdf"                     # a single file
-.\pdftomd.bat --fast "C:\Docs\sample.pdf"              # fast profile
-.\pdftomd.bat "C:\Docs\a.pdf" "C:\Docs\b.pdf"          # several files
-.\pdftomd.bat "C:\Docs\sample.pdf" -o "C:\out"         # output folder
-.\pdftomd.bat --no-open "C:\Docs\sample.pdf"           # no Explorer window
-.\pdftomd.bat --no-report "C:\Docs\sample.pdf"         # no quality report
-.\pdftomd.bat --help                                   # all options
+.\pdf-receipt.bat                                             # every PDF in this folder
+.\pdf-receipt.bat --yes                                       # same, without confirmation
+.\pdf-receipt.bat "C:\Docs\sample.pdf"                     # a single file
+.\pdf-receipt.bat --fast "C:\Docs\sample.pdf"              # fast profile
+.\pdf-receipt.bat "C:\Docs\a.pdf" "C:\Docs\b.pdf"          # several files
+.\pdf-receipt.bat "C:\Docs\sample.pdf" -o "C:\out"         # output folder
+.\pdf-receipt.bat --no-open "C:\Docs\sample.pdf"           # no Explorer window
+.\pdf-receipt.bat --no-report "C:\Docs\sample.pdf"         # no quality report
+.\pdf-receipt.bat --help                                   # all options
 ```
 
 **Current folder:** when no PDF path is supplied, the tool finds every `.pdf`
@@ -52,7 +55,7 @@ from anywhere the batch file is installed:
 
 ```powershell
 cd "C:\Docs"
-C:\path\to\pdftomd.bat
+C:\path\to\pdf-receipt.bat
 ```
 
 The folder and file names are printed first. If more than one PDF is found in an
@@ -225,8 +228,8 @@ Lost:
 ## Project layout
 
 ```text
-src/pdftomd/
-├── __main__.py        entry point for `python -m pdftomd`
+src/pdf_receipt/
+├── __main__.py        entry point for `python -m pdf_receipt`
 ├── cli.py             arguments, progress messages, exit codes
 ├── converter.py       the Docling conversion and the output paths
 ├── quality_report.py  collects evidence and renders Quality Report v2
@@ -238,7 +241,7 @@ tests/fixtures/        PDF regression corpus and machine-checkable facts
 docs/                  notes and open work
 ```
 
-`pdftomd.bat` puts `src` on the import path and calls `python -m pdftomd`, so no
+`pdf-receipt.bat` puts `src` on the import path and calls `python -m pdf_receipt`, so no
 installation step is needed.
 
 ## Tests

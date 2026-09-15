@@ -21,7 +21,7 @@ offline mode, and opt in explicitly:
 ```powershell
 $env:HF_HUB_OFFLINE = "1"
 $env:TRANSFORMERS_OFFLINE = "1"
-$env:PDFTOMD_RUN_DOCLING_FIXTURES = "1"
+$env:PDF_RECEIPT_RUN_DOCLING_FIXTURES = "1"
 .venv\Scripts\python.exe -m unittest discover -s tests\integration -t .
 ```
 

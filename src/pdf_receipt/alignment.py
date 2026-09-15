@@ -1,8 +1,8 @@
 """Bounded, occurrence-based token alignment for the quality-report pipeline.
 
 The module deliberately contains no Docling imports.  It consumes the token
-model produced by :mod:`pdftomd.quality_report` and snapshots all evidence into
-typed result objects for later metrics and rendering work.
+model produced by :mod:`pdf_receipt.quality_report` and snapshots all
+evidence into typed result objects for later metrics and rendering work.
 """
 
 from __future__ import annotations

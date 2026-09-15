@@ -7,12 +7,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pdftomd import converter
-from pdftomd import quality_report
+from pdf_receipt import converter
+from pdf_receipt import quality_report
 from tests.fixture_harness import assert_markdown_facts, load_fixture_cases
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
-RUN_LIVE = os.environ.get("PDFTOMD_RUN_DOCLING_FIXTURES") == "1"
+RUN_LIVE = os.environ.get("PDF_RECEIPT_RUN_DOCLING_FIXTURES") == "1"
 DROP_CAP_COMPLETE = "This chapter begins with a decorative drop cap"
 DROP_CAP_REMAINDER = "his chapter begins with a decorative drop cap."
 
@@ -32,7 +32,7 @@ def _contains_complete_drop_cap(texts: list[str]) -> bool:
 
 @unittest.skipUnless(
     RUN_LIVE,
-    "set PDFTOMD_RUN_DOCLING_FIXTURES=1 after caching Docling models",
+    "set PDF_RECEIPT_RUN_DOCLING_FIXTURES=1 after caching Docling models",
 )
 class LiveDoclingFixtureTests(unittest.TestCase):
     @classmethod

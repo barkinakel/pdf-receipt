@@ -1,4 +1,7 @@
-# PDF to Markdown
+# pdf-receipt
+
+PDF'i Markdown'a yerel olarak çevirir ve **tam olarak neyi kaybettiğini**
+sayfa sayfa, kanıtıyla raporlar.
 
 PDF dosyalarını yerel olarak Markdown'a çeviren kişisel bir araç. Docling
 kullanır: sayfa düzenini, tabloları ve taranmış metni yapay zeka modelleriyle
@@ -12,20 +15,20 @@ Bu doküman Türkçe; İngilizcesi için [README.en.md](README.en.md).
 Windows'ta Python 3.10+ kurulu olmalı (python.org'dan indirirken "Add
 python.exe to PATH" kutusunu işaretle). Sonra `install.bat` dosyasını bir kez
 çalıştır: sanal ortamı kurar, Docling'i indirir ve Windows'un "Gönder" menüsüne
-`pdftomd` kısayolunu ekler. İlk seferde birkaç dakika sürebilir. İlk dönüşümde
+`pdf-receipt` kısayolunu ekler. İlk seferde birkaç dakika sürebilir. İlk dönüşümde
 Docling kendi modellerini de indirir, o yüzden kurulum ve ilk çalıştırma internet
 ister; sonrası tamamen çevrimdışı. `install.bat` yeniden çalıştırılırsa mevcut
 sanal ortam ve paketler korunur; her şey sıfırdan tekrar kurulmaz.
 
 ## Kullanım
 
-**Sürükle-bırak:** PDF'leri (bir veya birden fazla) `pdftomd.bat` dosyasının
+**Sürükle-bırak:** PDF'leri (bir veya birden fazla) `pdf-receipt.bat` dosyasının
 üzerine bırak. Bir konsol penceresi açılır, ilerlemeyi yazar, bitince çıktı
 klasörü Explorer'da açılır. Hata olursa pencere kapanmaz, mesajı okuyabilirsin.
 
 **İstediğin dosyaları seç:** `install.bat`, Windows'un "Gönder" menüsüne
-`pdftomd` kısayolunu ekler. Explorer'da istediğin sayıda PDF seç, sağ tıkla ve
-Gönder → pdftomd yolunu kullan. Windows 11'de "Gönder", "Daha fazla seçenek
+`pdf-receipt` kısayolunu ekler. Explorer'da istediğin sayıda PDF seç, sağ tıkla ve
+Gönder → pdf-receipt yolunu kullan. Windows 11'de "Gönder", "Daha fazla seçenek
 göster" altında olabilir. Klasörde dört PDF varken yalnızca ikisini seçersen
 sadece o iki dosya dönüştürülür. Aracı bu kısayol eklenmeden önce kurduysan
 `install.bat` dosyasını yeniden çalıştırabilirsin; kurulu paketler tekrar
@@ -34,15 +37,15 @@ kullanılır.
 **Komut satırı:**
 
 ```powershell
-.\pdftomd.bat                                             # bu klasördeki bütün PDF'ler
-.\pdftomd.bat --yes                                       # aynı işlem, onay sormadan
-.\pdftomd.bat "C:\Belgeler\ornek.pdf"                     # tek dosya
-.\pdftomd.bat --fast "C:\Belgeler\ornek.pdf"              # hızlı profil
-.\pdftomd.bat "C:\Belgeler\a.pdf" "C:\Belgeler\b.pdf"     # birden fazla
-.\pdftomd.bat "C:\Belgeler\ornek.pdf" -o "C:\cikti"       # çıktı klasörü
-.\pdftomd.bat --no-open "C:\Belgeler\ornek.pdf"           # Explorer penceresi açmaz
-.\pdftomd.bat --no-report "C:\Belgeler\ornek.pdf"         # kalite raporu yazmaz
-.\pdftomd.bat --help                                      # tüm seçenekler
+.\pdf-receipt.bat                                             # bu klasördeki bütün PDF'ler
+.\pdf-receipt.bat --yes                                       # aynı işlem, onay sormadan
+.\pdf-receipt.bat "C:\Belgeler\ornek.pdf"                     # tek dosya
+.\pdf-receipt.bat --fast "C:\Belgeler\ornek.pdf"              # hızlı profil
+.\pdf-receipt.bat "C:\Belgeler\a.pdf" "C:\Belgeler\b.pdf"     # birden fazla
+.\pdf-receipt.bat "C:\Belgeler\ornek.pdf" -o "C:\cikti"       # çıktı klasörü
+.\pdf-receipt.bat --no-open "C:\Belgeler\ornek.pdf"           # Explorer penceresi açmaz
+.\pdf-receipt.bat --no-report "C:\Belgeler\ornek.pdf"         # kalite raporu yazmaz
+.\pdf-receipt.bat --help                                      # tüm seçenekler
 ```
 
 **Geçerli klasör:** Hiç PDF yolu verilmezse araç, çalıştırıldığı klasörün
@@ -52,7 +55,7 @@ ve alt klasörleri taramaz. Örneğin batch dosyası nerede kurulu olursa olsun
 
 ```powershell
 cd "C:\Belgeler"
-C:\araclar\pdftomd\pdftomd.bat
+C:\araclar\pdf-receipt\pdf-receipt.bat
 ```
 
 Önce klasör ve dosya adları gösterilir. Etkileşimli bir konsolda birden fazla
@@ -223,8 +226,8 @@ Kaybolan:
 ## Proje yapısı
 
 ```text
-src/pdftomd/
-├── __main__.py        `python -m pdftomd` girişi
+src/pdf_receipt/
+├── __main__.py        `python -m pdf_receipt` girişi
 ├── cli.py             argümanlar, ilerleme mesajları, çıkış kodları
 ├── converter.py       Docling ile dönüşüm ve çıktı yolları
 ├── quality_report.py  kanıt toplama ve Quality Report v2 üretimi
@@ -236,7 +239,7 @@ tests/fixtures/        PDF regresyon corpus'u ve makinece denetlenen gerçekler
 docs/                  notlar ve yapılacaklar (İngilizce)
 ```
 
-`pdftomd.bat`, `src` klasörünü içe aktarma yoluna ekleyip `python -m pdftomd`
+`pdf-receipt.bat`, `src` klasörünü içe aktarma yoluna ekleyip `python -m pdf_receipt`
 çağırır; ayrıca kurulum gerektirmez.
 
 ## Testler

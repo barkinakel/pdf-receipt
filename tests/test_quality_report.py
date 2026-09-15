@@ -3,8 +3,8 @@ from __future__ import annotations
 import unittest
 from types import SimpleNamespace
 
-from pdftomd import quality_report as qr
-from pdftomd import structural_integrity as si
+from pdf_receipt import quality_report as qr
+from pdf_receipt import structural_integrity as si
 
 
 def structure(**overrides) -> qr.DocumentStructure:

@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "PDFTOMD_LAUNCH_DIR=%CD%"
+set "PDF_RECEIPT_LAUNCH_DIR=%CD%"
 cd /d "%~dp0"
 set PYTHONUTF8=1
 set HF_HUB_DISABLE_XET=1
@@ -13,7 +13,7 @@ if not exist ".venv\Scripts\python.exe" (
 )
 
 set PYTHONPATH=%~dp0src
-".venv\Scripts\python.exe" -m pdftomd %*
+".venv\Scripts\python.exe" -m pdf_receipt %*
 set EXITCODE=%errorlevel%
 
 rem Keep the drag-and-drop window open so the error stays readable.

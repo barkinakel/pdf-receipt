@@ -1,6 +1,6 @@
 # Development plan
 
-The project is published at `https://github.com/barkinakel/pdftomd` under the
+The project is published at `https://github.com/barkinakel/pdf-receipt` under the
 MIT license. Development continues in this repository; pushing remains a
 user-initiated action. The baseline is commit `569a7a0`; all 59 unit tests
 passed at that point.
@@ -28,12 +28,12 @@ Landed for sections 1-7:
 
 - `tests/fixtures/` fact-based PDF corpus plus `tests/fixture_harness.py`, with
   live Docling checks isolated in `tests/integration/` behind
-  `PDFTOMD_RUN_DOCLING_FIXTURES=1`.
-- Provenance-preserving tokenization in `src/pdftomd/quality_report.py`, with the
+  `PDF_RECEIPT_RUN_DOCLING_FIXTURES=1`.
+- Provenance-preserving tokenization in `src/pdf_receipt/quality_report.py`, with the
   `unicode`/`turkic` case profiles and the cautious line-end-hyphen model.
-- `src/pdftomd/alignment.py`: page-partitioned, bounded-LCS two-stage occurrence
+- `src/pdf_receipt/alignment.py`: page-partitioned, bounded-LCS two-stage occurrence
   alignment producing extraction and serialization results.
-- `src/pdftomd/quality_metrics.py`: `StageMetrics` with enforced source and target
+- `src/pdf_receipt/quality_metrics.py`: `StageMetrics` with enforced source and target
   accounting identities, `None` for zero denominators, separate substitution and
   reading-order-risk categories, and bounded representative issue samples.
 - `report_version = 2`, the two-stage console summary and Markdown report,
@@ -41,7 +41,7 @@ Landed for sections 1-7:
   unverified-page wording.
 - Dependency-free Docling-GFM structure comparison plus safely resolved local
   links, Pillow-decoded image artifacts, dimensions, and stale-file detection in
-  `src/pdftomd/structural_integrity.py`.
+  `src/pdf_receipt/structural_integrity.py`.
 - A concise structural console result and detailed report tables for headings,
   lists/items, tables/cells, links, images, and artifact status.
 - The full offline fixture gate and the 95-page NIST v2 diagnostic benchmark.

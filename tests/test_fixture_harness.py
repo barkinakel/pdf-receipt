@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from pdftomd import quality_report as qr
+from pdf_receipt import quality_report as qr
 from tests.fixture_harness import FixtureCase, assert_markdown_facts, load_fixture_cases
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"

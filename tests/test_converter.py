@@ -7,9 +7,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from pdftomd import converter
-from pdftomd import quality_report as qr
-from pdftomd import structural_integrity as si
+from pdf_receipt import converter
+from pdf_receipt import quality_report as qr
+from pdf_receipt import structural_integrity as si
 
 
 def output_paths(root: Path, stem: str = "source") -> converter.OutputPaths:
@@ -187,7 +187,7 @@ class ExportTests(unittest.TestCase):
             runtime, _ = self._runtime(report=True)
 
             with patch(
-                "pdftomd.converter.write_quality_report", return_value="Quality: 100%"
+                "pdf_receipt.converter.write_quality_report", return_value="Quality: 100%"
             ) as report_mock:
                 result = converter.convert_pdf(
                     runtime, root / "source.pdf", output_paths(root)
@@ -233,7 +233,7 @@ class ExportTests(unittest.TestCase):
             )
 
             with patch(
-                "pdftomd.converter.quality_report.read_pdf_text",
+                "pdf_receipt.converter.quality_report.read_pdf_text",
                 return_value=qr.PdfText("source.pdf", ("Expected",)),
             ):
                 result = converter.convert_pdf(
@@ -252,7 +252,7 @@ class ExportTests(unittest.TestCase):
             runtime, _ = self._runtime(report=True)
 
             with patch(
-                "pdftomd.converter.write_quality_report",
+                "pdf_receipt.converter.write_quality_report",
                 side_effect=RuntimeError("cannot read the PDF"),
             ):
                 result = converter.convert_pdf(
@@ -267,7 +267,7 @@ class ExportTests(unittest.TestCase):
             root = Path(temp_dir).resolve()
             runtime, _ = self._runtime(report=False)
 
-            with patch("pdftomd.converter.write_quality_report") as report_mock:
+            with patch("pdf_receipt.converter.write_quality_report") as report_mock:
                 result = converter.convert_pdf(
                     runtime, root / "source.pdf", output_paths(root)
                 )
@@ -297,7 +297,7 @@ class ExportTests(unittest.TestCase):
             )
 
             with patch(
-                "pdftomd.converter.quality_report.read_pdf_text",
+                "pdf_receipt.converter.quality_report.read_pdf_text",
                 return_value=qr.PdfText("source.pdf", ("visible",)),
             ):
                 summary = converter.write_quality_report(

@@ -9,7 +9,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from pdftomd import cli, converter
+from pdf_receipt import cli, converter
 
 
 class ArgumentTests(unittest.TestCase):
@@ -100,14 +100,14 @@ def run_main(
     stdin = Mock()
     stdin.isatty.return_value = stdin_isatty
     with (
-        patch("pdftomd.cli.configure_console"),
-        patch("pdftomd.cli.sys.stdin", stdin),
+        patch("pdf_receipt.cli.configure_console"),
+        patch("pdf_receipt.cli.sys.stdin", stdin),
         patch("builtins.input", return_value=input_answer) as input_mock,
-        patch("pdftomd.cli.create_docling_runtime", return_value=runtime) as runtime_mock,
+        patch("pdf_receipt.cli.create_docling_runtime", return_value=runtime) as runtime_mock,
         patch(
-            "pdftomd.cli.convert_pdf", side_effect=convert_stub or fake_convert()
+            "pdf_receipt.cli.convert_pdf", side_effect=convert_stub or fake_convert()
         ) as convert_mock,
-        patch("pdftomd.cli.open_output_folder", side_effect=open_side_effect) as open_mock,
+        patch("pdf_receipt.cli.open_output_folder", side_effect=open_side_effect) as open_mock,
         redirect_stdout(stdout),
         redirect_stderr(stderr),
     ):
@@ -149,8 +149,8 @@ class FolderDiscoveryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir).resolve()
             with (
-                patch.dict(os.environ, {"PDFTOMD_LAUNCH_DIR": str(root)}),
-                patch("pdftomd.cli.Path.cwd", return_value=root.parent),
+                patch.dict(os.environ, {"PDF_RECEIPT_LAUNCH_DIR": str(root)}),
+                patch("pdf_receipt.cli.Path.cwd", return_value=root.parent),
             ):
                 folder = cli._automatic_input_folder()
 
@@ -161,7 +161,7 @@ class FolderDiscoveryTests(unittest.TestCase):
             root = Path(temp_dir).resolve()
             with (
                 patch.dict(os.environ, {}, clear=True),
-                patch("pdftomd.cli.Path.cwd", return_value=root),
+                patch("pdf_receipt.cli.Path.cwd", return_value=root),
             ):
                 folder = cli._automatic_input_folder()
 
@@ -172,7 +172,7 @@ class AutomaticInputFlowTests(unittest.TestCase):
     def test_empty_folder_returns_one_before_building_the_converter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir).resolve()
-            with patch.dict(os.environ, {"PDFTOMD_LAUNCH_DIR": str(root)}):
+            with patch.dict(os.environ, {"PDF_RECEIPT_LAUNCH_DIR": str(root)}):
                 run = run_main([])
 
             self.assertEqual(run.exit_code, 1)
@@ -185,7 +185,7 @@ class AutomaticInputFlowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir).resolve()
             pdf = touch_pdf(root / "one.pdf")
-            with patch.dict(os.environ, {"PDFTOMD_LAUNCH_DIR": str(root)}):
+            with patch.dict(os.environ, {"PDF_RECEIPT_LAUNCH_DIR": str(root)}):
                 run = run_main([], stdin_isatty=True)
 
             self.assertEqual(run.exit_code, 0)
@@ -200,7 +200,7 @@ class AutomaticInputFlowTests(unittest.TestCase):
             root = Path(temp_dir).resolve()
             first = touch_pdf(root / "alpha.pdf")
             second = touch_pdf(root / "beta.PDF")
-            with patch.dict(os.environ, {"PDFTOMD_LAUNCH_DIR": str(root)}):
+            with patch.dict(os.environ, {"PDF_RECEIPT_LAUNCH_DIR": str(root)}):
                 run = run_main([], stdin_isatty=True, input_answer="yes")
 
             self.assertEqual(run.exit_code, 0)
@@ -218,7 +218,7 @@ class AutomaticInputFlowTests(unittest.TestCase):
             root = Path(temp_dir).resolve()
             touch_pdf(root / "one.pdf")
             touch_pdf(root / "two.pdf")
-            with patch.dict(os.environ, {"PDFTOMD_LAUNCH_DIR": str(root)}):
+            with patch.dict(os.environ, {"PDF_RECEIPT_LAUNCH_DIR": str(root)}):
                 run = run_main([], stdin_isatty=True, input_answer="no")
 
             self.assertEqual(run.exit_code, 0)
@@ -231,7 +231,7 @@ class AutomaticInputFlowTests(unittest.TestCase):
             root = Path(temp_dir).resolve()
             touch_pdf(root / "one.pdf")
             touch_pdf(root / "two.pdf")
-            with patch.dict(os.environ, {"PDFTOMD_LAUNCH_DIR": str(root)}):
+            with patch.dict(os.environ, {"PDF_RECEIPT_LAUNCH_DIR": str(root)}):
                 run = run_main(["--yes"], stdin_isatty=True, input_answer="no")
 
             self.assertEqual(run.exit_code, 0)
@@ -243,7 +243,7 @@ class AutomaticInputFlowTests(unittest.TestCase):
             root = Path(temp_dir).resolve()
             touch_pdf(root / "one.pdf")
             touch_pdf(root / "two.pdf")
-            with patch.dict(os.environ, {"PDFTOMD_LAUNCH_DIR": str(root)}):
+            with patch.dict(os.environ, {"PDF_RECEIPT_LAUNCH_DIR": str(root)}):
                 run = run_main([])
 
             self.assertEqual(run.exit_code, 0)
@@ -257,7 +257,7 @@ class AutomaticInputFlowTests(unittest.TestCase):
             explicit = touch_pdf(root / "chosen" / "explicit.pdf")
             touch_pdf(launch_folder / "automatic.pdf")
             with patch.dict(
-                os.environ, {"PDFTOMD_LAUNCH_DIR": str(launch_folder)}
+                os.environ, {"PDF_RECEIPT_LAUNCH_DIR": str(launch_folder)}
             ):
                 run = run_main([str(explicit)], stdin_isatty=True)
 

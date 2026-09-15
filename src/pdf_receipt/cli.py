@@ -29,7 +29,7 @@ def configure_console() -> None:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog="pdftomd",
+        prog="pdf-receipt",
         description="Converts one or more PDF files to Markdown and JSON.",
     )
     parser.add_argument(
@@ -100,7 +100,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def _automatic_input_folder() -> Path:
-    launch_dir = os.environ.get("PDFTOMD_LAUNCH_DIR")
+    launch_dir = os.environ.get("PDF_RECEIPT_LAUNCH_DIR")
     folder = Path(launch_dir).expanduser() if launch_dir else Path.cwd()
     return folder.resolve()
 

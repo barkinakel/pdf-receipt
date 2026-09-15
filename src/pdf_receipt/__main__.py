@@ -1,4 +1,4 @@
-"""Entry point for `python -m pdftomd`."""
+"""Entry point for `python -m pdf_receipt`."""
 
 from .cli import main
 
