@@ -163,6 +163,48 @@ yüzdesi yalnızca `legacy_coverage` tanı geçmişi olarak kalır. İşlem ve m
 sözleşmesi, sınırlar ve sentetik ölçümler
 [`docs/ALIGNMENT.md`](docs/ALIGNMENT.md) içinde açıklanır.
 
+## Tamamlanmış dönüşümleri yeniden kullanma
+
+```powershell
+.\pdf-receipt.bat --skip-existing "C:\Belgeler\ornek.pdf"
+```
+
+Her dönüşüm artık çıktıların yanına `<ad>_manifest.json` kaydını yazar.
+`--skip-existing`, yalnızca bu tamamlanma kaydı kaynak dosyanın yolu, boyutu,
+değiştirilme zamanı, SHA-256 içerik özeti, uygulama/Docling sürümleri ve bütün
+dönüşüm ayarlarıyla (profil, formül, görsel ölçeği, rapor) eşleşiyorsa belgeyi
+atlar. Yerel kaynak kodundaki değişiklikler de kaydı geçersiz kılar. Bayrak
+verilmezse dönüşüm her zaman çalışır. Uyumlu manifesti olmayan eski çıktılar
+yeniden dönüştürülür.
+
+Yeniden kullanım kontrolü; gerekli Markdown, JSON, rapor ve bağlantı verilen
+görsellerin içerik özetlerini karşılaştırır, Docling JSON şemasını doğrular,
+görselleri açar ve yerel Markdown bağlantılarını denetler. Bunlar yerel
+kontrollerdir; tüm belgeler atlanabiliyorsa modeller yüklenmez. Büyük dosyaları
+okumak ve içerik özetini hesaplamak yine de işlem gerektirir. Manifest, göreli
+çıktı yollarını, dosya boyutlarını ve içerik özetlerini saklar. Rapor yalnızca
+açıksa gereklidir; rapor hatası uyarı olarak kalır ama o çalışmanın atlanmasını
+engeller. Bu kontroller çıktı bütünlüğünü gösterir, çıkarım doğruluğunu değil.
+
+Dönüşüm, çıktılara dokunmadan önce kaydı atomik olarak tamamlanmamış durumuna
+getirir. Dışa aktarma ve kontroller başarılı olunca kayıt atomik olarak
+tamamlanmış kaydıyla değiştirilir. Kesilen işlem kısmi çıktılar bırakabilir;
+ancak bunlar tamamlanmış sayılıp atlanamaz. Bu mekanizma eski çıktıları geri
+yüklemez. Tamamlanma kaydı yazılamazsa uyarı verilir ve kayıt tamamlanmamış
+kalır; eski kayıt geçersiz kılınamıyorsa çıktılar değiştirilmeden işlem durur.
+
+`<ad>_conversion.lock` dosyası aynı belge çıktısına eşzamanlı yazmayı engeller.
+Normal bitişte ve Ctrl+C ile kaldırılır. İşlem zorla sonlandırılmışsa önce hiçbir
+dönüşümün çalışmadığından emin ol, ardından çıktı klasöründen yalnızca bu kilit
+dosyasını kaldırıp yeniden dene. Kalabilecek `.pdf-receipt-*.tmp` dosyaları
+tamamlanma kaydı sayılmaz ve atlamaya izin vermez.
+
+İlgisiz dosyalar ve artık bağlantı verilmeyen eski görseller korunur; otomatik
+temizlenmez ve manifestte gerekli çıktı sayılmaz. Kalite raporu eski görselleri
+göstermeye devam edebilir. Toplu özet; dönüştürülen, atlanan ve başarısız dosya
+sayılarını ayrı gösterir. Tüm dosyaların atlandığı çalışma başarılı sayılır ve
+mevcut çıktı klasörünü açabilir.
+
 ## Görsel çözünürlüğü
 
 Her iki profilde de daha yüksek çözünürlüklü görseller için `--image-scale 2`
@@ -177,7 +219,7 @@ yollarla ve ileri eğik çizgilerle yazılmaya devam eder.
 
 Bitiş satırı ve toplu özetteki her başarılı sonuç, `--no-report` kullanıldığında
 da geçen saniyeyi ve toplam artifact baytını gösterir. Süre; dönüşümü, dışa
-aktarmayı ve isteğe bağlı raporu kapsar. Çalışma nesnesinin oluşturulması dahil
+aktarmayı, isteğe bağlı raporu ve tamamlanma kontrollerini kapsar. Çalışma nesnesinin oluşturulması dahil
 değildir; ancak Docling'in ilk dönüşüm sırasında yaptığı pipeline/model hazırlığı
 dahildir. Bu nedenle ilk belgenin süresi daha uzun olabilir.
 Artifact boyutu, önceki çalışmalardan kalan dosyalar dahil belgenin artifact

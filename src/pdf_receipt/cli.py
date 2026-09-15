@@ -8,6 +8,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import manifest
+
 from .converter import (
     ConversionResult,
     DoclingRuntime,
@@ -67,6 +69,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "(default: 1.0; examples: 1, 1.5, 2, 3). Higher values use more "
             "memory, time, and disk space."
         ),
+    )
+
+    parser.add_argument(
+        "--skip-existing", action="store_true",
+        help="Skip only completed outputs whose manifest, source, settings, and files verify.",
     )
 
     profiles = parser.add_mutually_exclusive_group()
@@ -204,6 +211,8 @@ def _convert_one(runtime: DoclingRuntime, job: Job, total: int) -> ConversionRes
             file=sys.stderr,
         )
 
+    if result.manifest_error:
+        print(f"Warning: could not record completion: {result.manifest_error}", file=sys.stderr)
     if result.artifact_error:
         print(f"Warning: could not measure artifact bytes: {result.artifact_error}",
               file=sys.stderr)
@@ -222,10 +231,12 @@ def _result_statistics(result: ConversionResult) -> str:
 def _print_batch_summary(
     successes: list[tuple[Path, ConversionResult]], failures: list[tuple[Path, str]]
 ) -> None:
-    print(f"\nSummary: {len(successes)} succeeded, {len(failures)} failed.")
+    skipped = sum(result.skipped for _, result in successes)
+    print(f"\nSummary: {len(successes) - skipped} converted, "
+          f"{skipped} skipped, {len(failures)} failed.")
     for pdf_path, result in successes:
         print(f"  ✓ {pdf_path.name} → {result.output.directory} "
-              f"({_result_statistics(result)})")
+              f"({'skipped' if result.skipped else _result_statistics(result)})")
     for pdf_path, error in failures:
         print(f"  ✗ {pdf_path.name}: {error}", file=sys.stderr)
 
@@ -270,22 +281,27 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Error: {failures[0][1]}", file=sys.stderr)
         return 1
 
-    print(
-        f"Loading models ({args.profile} profile)."
-        " This step can take a while on the first run...",
-        flush=True,
-    )
-    try:
-        runtime = create_docling_runtime(
-            args.profile, args.formula, args.report, image_scale=args.image_scale
-        )
-    except Exception as exc:
-        print(f"Could not start the converter: {exc}", file=sys.stderr)
-        return 1
-
+    runtime = None
+    options = manifest.settings(args.profile, args.formula, args.image_scale, args.report)
     try:
         for job in jobs:
             try:
+                if args.skip_existing and manifest.reusable(job.pdf_path, job.output, options):
+                    print(f"Skipped (verified existing output): {job.pdf_path.name}", flush=True)
+                    successes.append((job.pdf_path, ConversionResult(job.output, skipped=True)))
+                    continue
+                if runtime is None:
+                    print(
+                        f"Loading models ({args.profile} profile)."
+                        " This step can take a while on the first run...",
+                        flush=True,
+                    )
+                    try:
+                        runtime = create_docling_runtime(
+                            args.profile, args.formula, args.report, image_scale=args.image_scale
+                        )
+                    except Exception as exc:
+                        raise RuntimeError(f"Could not start the converter: {exc}") from exc
                 successes.append((job.pdf_path, _convert_one(runtime, job, total)))
             except Exception as exc:
                 failures.append((job.pdf_path, str(exc)))

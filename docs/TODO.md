@@ -13,7 +13,7 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after the completed image-resolution milestone.
+Current state after the completed manifest and output-reuse milestone.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -23,7 +23,8 @@ Current state after the completed image-resolution milestone.
 | C: structural integrity and full v2 gate | 5-6 | done |
 | D: drop-cap diagnosis | 7 | done |
 | E: image scale | 8 | done |
-| F and G | 9-10 | not started |
+| F: manifest and skip-existing | 9 | done |
+| G: live formula test | 10 | not started |
 
 Landed for sections 1-7:
 
@@ -270,7 +271,7 @@ default `quality` profile):
 
 Quality Report v2 is complete when milestones 1-6 pass, the report documents its
 limits honestly, and the README examples match the new output. This condition is
-satisfied, and sections 7 and 8 are also complete. Section 9 is next and has
+satisfied, and sections 7-9 are also complete. Section 10 is next and has
 not been started.
 
 ## 7. Lost decorative drop caps
@@ -363,6 +364,32 @@ Do not implement freshness using modification times alone.
 - A missing, old, corrupt, or incompatible manifest causes reconversion.
 - Show converted, skipped, and failed counts separately in batch summaries.
 - Never delete unrelated user files while cleaning stale converter artifacts.
+
+Completed (2026-09-15):
+
+- `src/pdf_receipt/manifest.py` records source path/size/mtime/SHA-256,
+  application and Docling/core versions, application source digest, all four
+  conversion settings, expected relative export/artifact paths, file sizes and
+  hashes, schema version, and the final completion marker.
+- Completion is atomically invalidated before exports and atomically published
+  last after validation. The same per-document exclusive lock protects writers
+  and reuse checks. Failed invalidation stops before changing outputs; failed
+  report or completion recording warns and leaves the run ineligible for reuse.
+- `--skip-existing` verifies required hashes, Docling JSON schema, decoded
+  Markdown/JSON image targets (including Windows JSON separators), and local
+  Markdown links. All-skipped commands avoid creating the Docling runtime.
+  Batch summaries separate converted, skipped, and failed documents.
+- Required outputs are tracked from exports and their image references.
+  Unrelated files, old reports when disabled, and unreferenced stale artifacts
+  are preserved. No cleanup or output rollback is attempted. A force-killed
+  process can leave an incomplete record, partial exports, a temporary file,
+  and a lock; both READMEs explain manual lock recovery after checking that no
+  conversion is running.
+- Focused manifest/converter/CLI tests: 72 passed. Full discovery: 219 tests OK,
+  4 opt-in live-test skips. The separate cached-model offline Docling manifest
+  check passed on the structure fixture and rejected a corrupted image.
+- Both READMEs and fixture instructions are updated without new benchmark
+  figures. Section 10 remains unstarted.
 
 ## 10. Live formula conversion
 

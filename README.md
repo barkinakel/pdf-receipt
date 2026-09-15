@@ -174,6 +174,45 @@ render as `n/a`. The old bag-of-words percentage survives only as
 limits, and synthetic measurements are in
 [`docs/ALIGNMENT.md`](docs/ALIGNMENT.md).
 
+## Reusing completed conversions
+
+```powershell
+.\pdf-receipt.bat --skip-existing "C:\Documents\example.pdf"
+```
+
+Every conversion now writes `<name>_manifest.json` beside its outputs.
+`--skip-existing` skips a document only when this completion record matches the
+source path, size, modification time, SHA-256 content hash, application/Docling
+versions, and all conversion settings (profile, formula, image scale, report).
+Local source-code changes also invalidate records. Without the flag, conversion
+always runs. Older outputs without a compatible manifest are converted again.
+
+Reuse checks hash every required Markdown, JSON, report, and referenced image;
+validate the Docling JSON schema; decode referenced images; and check local
+Markdown links. These are local checks, with no model loading when all documents
+can be skipped. Reading and hashing large files still takes work. The manifest
+records relative output paths, file sizes, and hashes. A report is required only
+when enabled; a failed report stays a warning but prevents reuse of that run.
+These checks establish output integrity, not extraction accuracy.
+
+Before touching outputs, conversion atomically marks the record incomplete.
+Only after exports and checks succeed is it atomically replaced by a completed
+record. An interrupted conversion may leave partial outputs, but they cannot
+be reused as complete. This is completion safety, not a rollback of old outputs.
+Completion-write failures warn and leave the record incomplete; inability to
+invalidate an old record stops the conversion before changing its outputs.
+
+A `<name>_conversion.lock` file prevents concurrent writers to the same document
+output. Normal exits and Ctrl+C remove it. If the process is forcibly terminated,
+first confirm no conversion is running, then remove only that lock file from the
+output directory and retry. A leftover `.pdf-receipt-*.tmp` file is never a
+completion record and does not enable skipping.
+
+Unrelated files and old unreferenced artifacts are preserved, not cleaned up or
+listed as required manifest outputs. The quality report can still flag stale
+artifacts. Batch summaries show converted, skipped, and failed counts separately;
+an all-skipped run succeeds and can open the existing output folder.
+
 ## Image resolution
 
 Use `--image-scale 2` for higher-resolution image artifacts with either profile.
@@ -187,7 +226,7 @@ from the source image. Markdown still uses relative, forward-slash image links.
 
 The completion line and each successful batch-summary entry show elapsed seconds
 and total artifact bytes, also with `--no-report`. Duration covers conversion,
-exports, and the optional report. Runtime object creation is excluded, but
+exports, the optional report, and completion checks. Runtime object creation is excluded, but
 Docling's lazy pipeline/model initialization during the first conversion is
 included, so the first document can take longer. Artifact bytes
 count all files currently under the document's artifact folder, including stale

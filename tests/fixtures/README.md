@@ -54,3 +54,11 @@ than treating them as successes:
 
 Each limitation fact also accepts the corrected outcome, so a future upstream
 or project fix will not permanently bake the loss into the corpus contract.
+
+The manifest integration check converts the structure fixture with the quality
+profile, verifies that its real exports can be reused, then corrupts a temporary
+image artifact and requires reconversion. It uses the same offline environment:
+
+```powershell
+.venv\Scripts\python.exe -m unittest tests.integration.test_docling_fixtures.LiveDoclingFixtureTests.test_manifest_reuses_real_exports_and_rejects_changed_artifacts
+```

@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pdf_receipt import converter
+from pdf_receipt import converter, manifest
 from pdf_receipt import quality_report
 from tests.fixture_harness import assert_markdown_facts, load_fixture_cases
 
@@ -44,6 +44,20 @@ class LiveDoclingFixtureTests(unittest.TestCase):
         cls.runtime = converter.create_docling_runtime(
             "quality", formula=False, report=True
         )
+
+    def test_manifest_reuses_real_exports_and_rejects_changed_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = FIXTURES / "structure_layout.pdf"
+            output = converter.plan_output_paths([source], Path(temp_dir))[0][0]
+            result = converter.convert_pdf(self.runtime, source, output)
+            self.assertIsNone(result.report_error)
+            self.assertIsNone(result.manifest_error)
+            options = manifest.settings("quality", False, 1.0, True)
+            self.assertTrue(manifest.reusable(source, output, options))
+            payload = json.loads(manifest.manifest_path(output).read_text())
+            artifact = output.directory / payload["outputs"]["artifact_paths"][0]
+            artifact.write_bytes(b"broken")
+            self.assertFalse(manifest.reusable(source, output, options))
 
     def test_fixture_facts_against_live_docling_output(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

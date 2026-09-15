@@ -10,12 +10,13 @@ import math
 import os
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Literal
 
 from . import quality_report
 from . import structural_integrity
+from . import manifest
 
 Profile = Literal["fast", "quality"]
 
@@ -39,6 +40,8 @@ class DoclingRuntime:
     referenced_image_mode: Any
     profile: Profile = "quality"
     report: bool = True
+    formula: bool = False
+    image_scale: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,8 @@ class ConversionResult:
     duration_seconds: float = 0.0
     artifact_bytes: int | None = None
     artifact_error: str | None = None
+    manifest_error: str | None = None
+    skipped: bool = False
 
 
 def long_path(path: Path) -> Path:
@@ -176,6 +181,8 @@ def create_docling_runtime(
         referenced_image_mode=ImageRefMode.REFERENCED,
         profile=profile,
         report=report,
+        formula=formula,
+        image_scale=image_scale,
     )
 
 
@@ -252,8 +259,43 @@ def convert_pdf(
     pdf_path: Path,
     output: OutputPaths,
 ) -> ConversionResult:
-    """Convert one PDF and export Markdown/JSON from the same Docling result."""
+    """Invalidate completion before writing, then publish a verified manifest last."""
     started = time.monotonic()
+    long_path(output.directory).mkdir(parents=True, exist_ok=True)
+    for path in (output.markdown, output.json, output.report, output.artifacts,
+                 manifest.manifest_path(output), manifest.lock_path(output)):
+        manifest._relative(path, output)
+    with manifest.conversion_lock(output):
+        # If invalidation fails, do not touch any previous output.
+        manifest.atomic_write(output, {"manifest_version": manifest.SCHEMA_VERSION,
+                                       "complete": False})
+        source = None
+        manifest_error = None
+        try:
+            source = manifest.source_identity(pdf_path)
+        except Exception as exc:
+            manifest_error = str(exc)
+        result = _convert_pdf(runtime, pdf_path, output)
+        if result.report_error:
+            manifest_error = "Requested quality report failed; completion was not recorded"
+        elif source is not None:
+            try:
+                if source != manifest.source_identity(pdf_path):
+                    raise ValueError("Source changed during conversion")
+                manifest.complete(output, source, manifest.settings(
+                    runtime.profile, runtime.formula, runtime.image_scale, runtime.report))
+            except Exception as exc:
+                manifest_error = str(exc)
+        return replace(result, manifest_error=manifest_error,
+                       duration_seconds=time.monotonic() - started)
+
+
+def _convert_pdf(
+    runtime: DoclingRuntime,
+    pdf_path: Path,
+    output: OutputPaths,
+) -> ConversionResult:
+    """Convert one PDF and export Markdown/JSON from the same Docling result."""
     markdown_path = long_path(output.markdown)
     long_path(output.directory).mkdir(parents=True, exist_ok=True)
     relative_artifacts = Path(output.artifacts.name)
@@ -288,6 +330,6 @@ def convert_pdf(
     except OSError as exc:
         artifact_error = str(exc)
     return ConversionResult(
-        output, summary, report_error, time.monotonic() - started,
+        output, summary, report_error, 0.0,
         artifact_bytes, artifact_error,
     )
