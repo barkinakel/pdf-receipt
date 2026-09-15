@@ -1,90 +1,89 @@
 # pdf-receipt
 
-Local, offline PDF to Markdown conversion that reports **exactly what it lost**,
+Converts PDF files to Markdown locally, and reports **exactly what it lost** —
 page by page, with evidence.
 
-A personal tool that converts PDF files to Markdown locally. It runs on Docling,
-so page layout, tables and scanned text are handled by machine learning models.
-Nothing is uploaded anywhere; everything happens on this computer.
-
+pdf-receipt runs on [Docling](https://github.com/docling-project/docling), which
+uses machine learning models to read page layout, tables, and scanned text.
+Everything runs on your own machine. No file is ever uploaded, and once the
+models are cached the tool works fully offline.
 
 ## Installation
 
-You need Python 3.10+ on Windows (tick "Add python.exe to PATH" when installing
-it from python.org). Then run `install.bat` once: it creates the virtual
-environment, downloads Docling, and adds `pdf-receipt` to the Windows "Send to"
-menu. This can take a few minutes the first time. Docling also downloads its own
-models during the first conversion, so setup and the first run need an internet
-connection; everything after that is offline. Running `install.bat` again keeps
-the existing environment and packages; it does not reinstall them from scratch.
+You need Windows and Python 3.10 or newer. When installing Python from
+python.org, tick **Add python.exe to PATH**.
+
+Then run `install.bat` once. It creates a virtual environment, installs Docling,
+and adds a `pdf-receipt` entry to the Windows **Send to** menu. Expect it to take
+a few minutes.
+
+Docling downloads its own models during your first conversion, so setup and the
+first run need an internet connection. Everything after that is offline. Running
+`install.bat` again reuses the existing environment rather than reinstalling it.
 
 ## Usage
 
-**Drag and drop:** drop one or more PDFs onto `pdf-receipt.bat`. A console window
-opens, prints its progress, and opens the output folder in Explorer when it is
-done. If something fails the window stays open so you can read the message.
+**Drag and drop.** Drop one or more PDFs onto `pdf-receipt.bat`. A console window
+opens, prints its progress, and opens the output folder in Explorer when it
+finishes. If something fails, the window stays open so you can read the error.
 
-**Selected files anywhere:** `install.bat` adds a `pdf-receipt` shortcut to the
-Windows "Send to" menu. Select any number of PDFs in Explorer, right-click, then
-choose Send to → pdf-receipt. On Windows 11, "Send to" may be under "Show more
-options". Only the selected files are converted, so if a folder contains four
-PDFs you can select two and process just those two. If you installed the tool
-before this shortcut was added, run `install.bat` again; installed dependencies
-are reused.
+**Send to menu.** Select any number of PDFs in Explorer, right-click, and choose
+Send to → pdf-receipt. On Windows 11 you may need to open **Show more options**
+first. Only the files you selected are converted, so you can pick two PDFs out of
+a folder of four. If you installed the tool before this shortcut existed, run
+`install.bat` again — your installed packages are reused.
 
-**Command line:**
+**Command line.**
 
 ```powershell
-.\pdf-receipt.bat                                             # every PDF in this folder
-.\pdf-receipt.bat --yes                                       # same, without confirmation
-.\pdf-receipt.bat "C:\Docs\sample.pdf"                     # a single file
-.\pdf-receipt.bat --fast "C:\Docs\sample.pdf"              # fast profile
-.\pdf-receipt.bat "C:\Docs\a.pdf" "C:\Docs\b.pdf"          # several files
-.\pdf-receipt.bat "C:\Docs\sample.pdf" -o "C:\out"         # output folder
-.\pdf-receipt.bat --no-open "C:\Docs\sample.pdf"           # no Explorer window
-.\pdf-receipt.bat --no-report "C:\Docs\sample.pdf"         # no quality report
-.\pdf-receipt.bat --help                                   # all options
+.\pdf-receipt.bat                                    # every PDF in this folder
+.\pdf-receipt.bat --yes                              # same, without confirmation
+.\pdf-receipt.bat "C:\Docs\sample.pdf"               # a single file
+.\pdf-receipt.bat --fast "C:\Docs\sample.pdf"        # fast profile
+.\pdf-receipt.bat "C:\Docs\a.pdf" "C:\Docs\b.pdf"    # several files
+.\pdf-receipt.bat "C:\Docs\sample.pdf" -o "C:\out"   # choose the output folder
+.\pdf-receipt.bat --no-open "C:\Docs\sample.pdf"     # skip the Explorer window
+.\pdf-receipt.bat --no-report "C:\Docs\sample.pdf"   # skip the quality report
+.\pdf-receipt.bat --help                             # all options
 ```
 
-**Current folder:** when no PDF path is supplied, the tool finds every `.pdf`
-file directly in the folder it was launched from. Matching is case-insensitive,
-and subfolders are not searched. For example, to convert the PDFs in `C:\Docs`
-from anywhere the batch file is installed:
+**Current folder.** Given no path, the tool converts every `.pdf` file directly
+inside the folder it was launched from. Matching ignores case, and subfolders are
+not searched:
 
 ```powershell
 cd "C:\Docs"
 C:\path\to\pdf-receipt.bat
 ```
 
-The folder and file names are printed first. If more than one PDF is found in an
-interactive console, type `yes` to start or anything else to cancel. Use
-`--yes` to skip that question. Scripts and other noninteractive runs proceed
-without asking.
+The folder and file names are printed first. If it finds more than one PDF in an
+interactive console, type `yes` to start or anything else to cancel. Use `--yes`
+to skip that prompt. Scripts and other non-interactive runs never stop to ask.
 
 ## Output
 
-For a single PDF the output is created next to the source file:
+For a single PDF, the output folder is created next to the source file:
 
 ```text
 sample_markdown/
-├── sample.md          the file you read
+├── sample.md          the readable document
 ├── sample.json        Docling's structural record
 ├── sample_report.md   what the conversion lost
 └── sample_artifacts/  images extracted from the document (PNG)
 ```
 
-Images are **not embedded** in the Markdown; they are separate files the `.md`
-links to. If you move the Markdown file somewhere else, take the `_artifacts`
+Images are **not embedded** in the Markdown; they are separate files that the
+`.md` links to. If you move the Markdown somewhere else, take the `_artifacts`
 folder with it or the images will break.
 
-The `.json` file holds what Markdown cannot: which page each block came from and
-where it sits on that page, the cell-by-cell structure of tables (merged cells
-included), and block types. Useful for feeding a search/RAG system or answering
-"which page is this sentence on". If you only want to read the document you can
-delete it; the Markdown works without it.
+The `.json` file holds everything Markdown cannot express: which page each block
+came from and where it sits on that page, the cell-by-cell structure of tables
+including merged cells, and block types. It is what you want for a search or RAG
+system, or for answering "which page is this sentence on?". If you only plan to
+read the document, you can delete it — the Markdown stands on its own.
 
-When several PDFs are given and `-o` is not, a shared folder is created next to
-the first PDF, and files with the same name are separated by `_2`, `_3`:
+Given several PDFs and no `-o`, a shared folder is created next to the first PDF,
+and files with the same name are separated by `_2`, `_3`:
 
 ```text
 pdfmd_output/
@@ -92,33 +91,25 @@ pdfmd_output/
 └── two_markdown/
 ```
 
-With `-o`, a single PDF writes straight into that folder, while several PDFs get
-their document folders created inside it. If one file fails the rest keep going
-and a summary is printed at the end.
+With `-o`, a single PDF writes straight into that folder, while several PDFs each
+get their own document folder inside it. If one file fails, the rest continue and
+a summary is printed at the end.
 
 ## Quality report
 
-After every conversion the tool prints a concise Quality Report v2 summary. The
-numbers below are illustrative, not a reproduced document measurement:
+Every conversion prints a short Quality Report v2 summary. The numbers below are
+illustrative, not a real measurement:
 
 ```text
 Quality Report v2 | Extraction: transfer 98.0% (980/1000); unexplained 10; order risks 2 | Serialization: transfer 99.0% (990/1000); unexpected 5; order risks 1
 Structure: PASS | headings 12/12; lists 3/3 (items 18/18); tables 4/4 (cells 86/86); links 2/2; images 5/5; stale 0
 ```
 
-The details go into `<name>_report.md`. Extraction (PDF text layer to
-DoclingDocument) and serialization (DoclingDocument to visible Markdown) have
-separate token counts, rates, accounting identities, and occurrence-level issue
-samples. This is text-layer agreement evidence, not verified document accuracy.
-The structural section also compares heading, list, table-cell, and link
-occurrences between the DoclingDocument and Markdown. It keeps local targets
-inside the output directory, decodes images to record their format and
-dimensions, and reports missing, empty, invalid, or stale artifacts. It never
-opens external links over the network. These are serialization-integrity
-checks; they do not by themselves prove that Docling extracted the PDF correctly.
+The details go into `<name>_report.md`. Pass `--no-report` to turn it off.
 
-It earns its keep on scanned documents. Converting a PDF without a text layer
-using `--fast` silently produces an empty file, and the report says so:
+The report is most valuable on scanned documents. Converting a PDF that has no
+text layer with `--fast` quietly produces an empty file, and the report says so
+instead of claiming success:
 
 ```text
 Quality Report v2 | Extraction: transfer n/a (no source tokens); unexplained 0; order risks 0 | Serialization: transfer n/a (no source tokens); unexpected 0; order risks 0
@@ -126,40 +117,61 @@ Structure: PASS | headings 0/0; lists 0/0 (items 0/0); tables 0/0 (cells 0/0); l
 WARNING: 2 pages without a text layer are unverified; --fast turned OCR off, so they may have come out empty. Coverage cannot be measured. Try again with --quality.
 ```
 
-Pass `--no-report` if you do not want it.
+### Two stages, measured separately
 
-The counter now includes Unicode letters and numbers of every length, so short
-words and table values such as `A`, `ve`, `7`, and `42` are not silently
-dropped. Unicode compatibility normalization makes ligatures such as `ﬁ`
-compare equal to their ordinary letters.
+The tool never scores the PDF against the Markdown directly. It runs two
+comparisons instead:
 
-Case handling has an explicit document-level policy. The default `unicode`
-profile uses locale-free Unicode case folding, so English `RISK`/`risk`,
-`TITLE`/`title`, and `I`/`i` match. The token model also supports an explicitly
-selected `turkic` profile, where `İ`/`i` and `I`/`ı` are separate pairs. The
-converter does not guess a document's language: no single locale-free string
-can satisfy both interpretations of `I` safely.
+```text
+PDF text layer  ->  DoclingDocument  ->  Markdown and artifacts
+        extraction              serialization
+```
 
-A same-line compound such as `risk-based` keeps its hyphen. A hyphen at a line
-ending is ambiguous because it can also be a wrapped compound. Tokens retain
-every raw separator span, a conservative hyphen-preserving form, and independent
-keep/join choices. Ordered alignment only joins a candidate when neighboring
-tokens support it and records that decision separately from an ordinary match.
+Each stage gets its own token counts, rates, and issue samples. This is evidence
+of agreement with the PDF text layer — **not** verified document accuracy, since
+the text layer itself can be wrong.
 
-The analysis path now builds two occurrence-based results: PDF text layer to
-DoclingDocument (extraction), then DoclingDocument to visible Markdown
-(serialization). Alignment is page-partitioned and uses a bounded 64-token LCS
-window, retains source/provenance evidence, reports possible reading-order moves
-as risks, and never reuses one occurrence. Multi-entry Docling provenance is
-mapped by token `charspan`; ambiguous pages remain unknown. Figure and furniture
-explanations require overlap between retained PDF character boxes and the
-Docling region, rather than page-and-text equality alone. Visible URL and email
-autolinks are tokenized while actual HTML tags remain syntax. V2 exposes
-accepted transfer, accounted loss, unexplained loss, unexpected additions,
-substitutions, and order risks without folding explanations into the transfer
-rate. Zero denominators render as `n/a`. The old bag-of-words percentage remains
-available only as `legacy_coverage` diagnostic history. The full operation and
-metric contract, limits, and synthetic measurements are in
+The structural section compares headings, lists, table cells, and links between
+the DoclingDocument and the Markdown. It resolves local links only inside the
+output folder, decodes every image to record its real format and dimensions, and
+flags missing, empty, invalid, or stale artifacts. It never opens external links
+over the network. These checks prove the Markdown matches the DoclingDocument;
+they say nothing about whether Docling read the PDF correctly.
+
+### How tokens are compared
+
+- **Nothing is too short to count.** Unicode letters and digits of every length
+  are included, so values like `A`, `ve`, `7`, and `42` are never dropped.
+- **Ligatures compare equal.** Unicode compatibility normalization makes `ﬁ`
+  match the ordinary letters.
+- **Every occurrence is consumed once.** Alignment is page-partitioned and uses a
+  bounded 64-token window, so one Markdown word can never explain two PDF words.
+- **Reading-order changes are risks, not errors.** The PDF text layer is
+  unreliable on multi-column pages, so a disagreement is reported rather than
+  blamed on Docling.
+- **Figures and page furniture must overlap.** A figure only explains a token
+  when the retained PDF character boxes overlap the Docling region; matching page
+  and text alone is not enough.
+
+Case handling follows an explicit document-level policy. The default `unicode`
+profile uses locale-free case folding, so `RISK`/`risk` and `I`/`i` match. A
+`turkic` profile is also available, where `İ`/`i` and `I`/`ı` are the pairs
+instead. The converter never guesses a document's language, because no
+locale-free rule can satisfy both readings of `I` safely.
+
+Hyphens are handled conservatively. A compound on one line, such as
+`risk-based`, keeps its hyphen. A hyphen at the end of a line is ambiguous — it
+may be a wrapped compound — so each token keeps its raw span alongside both a
+hyphen-preserving and a joined form. The aligner joins the two halves only when
+the neighbouring tokens support it, and records that decision separately from an
+ordinary match.
+
+The metrics report accepted transfer, accounted loss, unexplained loss,
+unexpected additions, substitutions, and order risks as distinct numbers.
+Explaining a loss never quietly improves the transfer rate. Empty denominators
+render as `n/a`. The old bag-of-words percentage survives only as
+`legacy_coverage`, kept as diagnostic history. The full metric contract, its
+limits, and synthetic measurements are in
 [`docs/ALIGNMENT.md`](docs/ALIGNMENT.md).
 
 ## Which profile?
@@ -168,21 +180,21 @@ metric contract, limits, and synthetic measurements are in
 |---|---|---|
 | Speed (5 pages) | 13 s | 30 s |
 | Text and images | same | same |
-| Tables | rows/columns are lost, cells pile into one line | real rows and columns |
+| Tables | rows and columns are lost, cells pile into one line | real rows and columns |
 | Scanned page | comes out empty | OCR reads the text |
 
 The difference is exactly two settings: `--fast` turns off OCR and the table
 structure model.
 
-**Rule of thumb:** keep the default when the document is scanned or has tables;
-use `--fast` for plain text (novels, articles, contract text). When in doubt the
-default loses nothing, it is only slower. In the latest warm-cache verification,
-the 95-page, table-heavy NIST document converted in 276 seconds; end-to-end time
-including model loading and CLI shutdown was 283.355 seconds.
+**Rule of thumb:** keep the default for anything scanned or table-heavy, and use
+`--fast` for plain prose such as novels, articles, and contract text. When in
+doubt, the default loses nothing — it is only slower. In the latest warm-cache
+run, the 95-page, table-heavy NIST document converted in 276 seconds, or 283.355
+seconds end to end including model loading and shutdown.
 
-`--formula` turns formulas into LaTeX. The first run downloads an extra 631 MB
-model; if the download is interrupted it resumes on the next run. It can be
-combined with either profile.
+`--formula` converts formulas to LaTeX. Its first run downloads an extra 631 MB
+model, and resumes the download if it is interrupted. It works with either
+profile.
 
 ## What survives and what does not
 
@@ -194,53 +206,52 @@ cached models, offline, and the default `--quality` profile:
 - Serialization transfer: **98.37%** (40,680/41,355), with 0.11% unexplained
   loss, 0.23% unexpected additions, and 436 reading-order risks.
 - Structural integrity: **PASS** — 152 headings, 40 lists/183 items, 55
-  tables/1,274 cells, and 7/7 valid PNGs; no missing or stale artifacts.
-- The latest warm-cache verification took 283.355 seconds end to end. The
-  highest `PeakWorkingSet64` from valid process samples in the first two offline
-  measurement runs was 3,587,977,216 bytes (3.342 GiB).
+  tables/1,274 cells, and 7/7 valid PNGs, with no missing or stale artifacts.
+- The run took 283.355 seconds end to end. The highest `PeakWorkingSet64` across
+  valid process samples in the first two offline runs was 3,587,977,216 bytes
+  (3.342 GiB).
 
-The historical **99.6%** Quality Report v1 value remains diagnostic history.
-Its old counter omitted tokens shorter than three characters and did not account
-for occurrences one-to-one, so it is not directly comparable with the v2
-transfer rates. None of these values is a document-accuracy percentage because
-the NIST run has no manually verified ground truth.
+None of these is a document-accuracy percentage, because this run has no manually
+verified ground truth. The historical **99.6%** from Quality Report v1 is kept
+only as diagnostic history: its counter ignored tokens shorter than three
+characters and did not match occurrences one-to-one, so it is not comparable with
+the v2 rates.
 
-Kept: heading levels, paragraph and list structure, table data, the position of
-images within the text, footnotes. Page headers and footers are dropped on
+**Kept:** heading levels, paragraph and list structure, table data, the position
+of images within the text, and footnotes. Page headers and footers are dropped on
 purpose.
 
-Lost:
+**Lost:**
 
 - **Italic and bold emphasis** become plain text.
-- **Merged table cells** do not exist in Markdown, so the value is repeated: a
-  header spanning three columns comes out as
-  `| Provided To | Provided To | Provided To |`. The real structure stays in the
-  `.json` file as `colspan`.
-- **Drop caps** (the large letter at the start of a chapter) can become detached
-  and misordered: `This` may be split into a standalone `T` and a later `his`
-  block. The character remains in JSON/Markdown but its reading relationship is
-  lost; see `docs/DROP_CAP_DIAGNOSIS.md`.
-- **Superscript footnote numbers** drop into the line.
-- **Text drawn inside figures** does not come out as text; it stays in the image.
+- **Merged table cells** cannot exist in Markdown, so the value repeats: a header
+  spanning three columns comes out as `| Provided To | Provided To | Provided To |`.
+  The real structure stays in the `.json` file as `colspan`.
+- **Drop caps** — the oversized letter opening a chapter — can end up detached
+  and out of order: `This` may split into a lone `T` and a later `his`. The
+  character survives in both JSON and Markdown, but its reading relationship does
+  not. See [`docs/DROP_CAP_DIAGNOSIS.md`](docs/DROP_CAP_DIAGNOSIS.md).
+- **Superscript footnote numbers** drop down into the line.
+- **Text drawn inside figures** stays part of the image and never becomes text.
 
 ## Project layout
 
 ```text
 src/pdf_receipt/
-├── __main__.py        entry point for `python -m pdf_receipt`
-├── cli.py             arguments, progress messages, exit codes
-├── converter.py       the Docling conversion and the output paths
-├── quality_report.py  collects evidence and renders Quality Report v2
-├── quality_metrics.py per-stage v2 counts, rates, and accounting identities
-├── alignment.py       bounded two-stage occurrence alignment
+├── __main__.py              entry point for `python -m pdf_receipt`
+├── cli.py                   arguments, progress messages, exit codes
+├── converter.py             the Docling conversion and the output paths
+├── quality_report.py        collects evidence and renders Quality Report v2
+├── quality_metrics.py       per-stage counts, rates, and accounting identities
+├── alignment.py             bounded two-stage occurrence alignment
 └── structural_integrity.py  heading, list, table, link, and image integrity
-tests/                 one test file per module
-tests/fixtures/        PDF regression corpus and machine-checkable facts
-docs/                  notes and open work
+tests/                       one test file per module
+tests/fixtures/              PDF regression corpus and machine-checkable facts
+docs/                        notes and open work
 ```
 
-`pdf-receipt.bat` puts `src` on the import path and calls `python -m pdf_receipt`, so no
-installation step is needed.
+`pdf-receipt.bat` puts `src` on the import path and calls
+`python -m pdf_receipt`, so there is no installation step.
 
 ## Tests
 
@@ -248,14 +259,13 @@ installation step is needed.
 .venv\Scripts\python.exe -m unittest discover -s tests -t .
 ```
 
-This fast command skips the live Docling corpus test. After the initial setup
-has cached all models, the fully offline integration instructions are in
+This skips the live Docling corpus test, which is slower. Once the initial setup
+has cached every model, the fully offline integration instructions are in
 [`tests/fixtures/README.md`](tests/fixtures/README.md).
 
 ## License
 
-[MIT](LICENSE). You may use, modify, and distribute this freely; the software is
-provided without any warranty.
+[MIT](LICENSE). Use, modify, and distribute it freely; it comes with no warranty.
 
 The conversion engine is [Docling](https://github.com/docling-project/docling),
-which is distributed separately under its own license.
+distributed separately under its own license.
