@@ -242,9 +242,17 @@ daha hızlı bitmesinin tek sebebi de bu.
 (roman, makale, sözleşme) ise `--fast` kullan. Emin değilsen varsayılan
 seçenek hiçbir şey kaybettirmez, sadece yavaştır.
 
-`--formula` matematik formüllerini LaTeX'e çevirir. İlk kullanımda 631 MB'lık
-ek bir model iner; indirme yarıda kesilirse sonraki çalıştırmada kaldığı yerden
-devam eder. Fast veya quality ile birlikte kullanılabilir.
+`--formula`, algılanan formüllerin LaTeX'e çevrilmesini ister ve iki profille de
+kullanılabilir. İsteğe bağlı CodeFormulaV2 modelini gerektirir; ilk kullanımda
+internet üzerinden indirilir, önbelleğe alındıktan sonra dönüşümler çevrimdışı
+çalışır. `--formula` verilmezse normal dönüşüm bu ek modeli yüklemez.
+
+İndirme kesilirse aynı komutu internet erişimiyle yeniden çalıştır. Test edilen
+Hugging Face istemcisi yarım dosyanın eski baytlarından devam etmek yerine o
+dosyayı yeniden indirir; tamamlanmış önbellek dosyaları tekrar kullanılır.
+Formül modeli yoksa açıkça formül istenen işlem başarısız olur; normal dönüşüm
+kullanılabilir kalır. Test ortamı, kanıt ve sınırlamalar için
+[formül doğrulama ve kurtarma notlarına](docs/FORMULA_VERIFICATION.md) bak.
 
 ## Ne korunur, ne kaybolur
 

@@ -119,8 +119,7 @@ WARNING: 2 pages without a text layer are unverified; --fast turned OCR off, so 
 
 ### Two stages, measured separately
 
-The tool never scores the PDF against the Markdown directly. It runs two
-comparisons instead:
+The conversion quality report measures these two stages separately:
 
 ```text
 PDF text layer  ->  DoclingDocument  ->  Markdown and artifacts
@@ -249,9 +248,17 @@ structure model, which is the only reason it finishes sooner.
 `--fast` for plain prose such as novels, articles, and contract text. When in
 doubt, the default loses nothing — it is only slower.
 
-`--formula` converts formulas to LaTeX. Its first run downloads an extra 631 MB
-model, and resumes the download if it is interrupted. It works with either
-profile.
+`--formula` requests LaTeX conversion for detected formulas and works with either
+profile. It needs the optional CodeFormulaV2 model; the first use requires a
+network download, and later conversions work offline once the model is cached.
+Without `--formula`, ordinary conversion does not load this optional model.
+
+If the download is interrupted, rerun the same command with network access.
+The tested Hugging Face client restarts an unfinished file rather than resuming
+its old partial bytes; completed cached files are reused. A missing formula
+model causes an explicit formula request to fail, while ordinary conversion
+remains available. See [formula verification and recovery](docs/FORMULA_VERIFICATION.md)
+for the tested environment, evidence, and limitations.
 
 ## What survives and what does not
 

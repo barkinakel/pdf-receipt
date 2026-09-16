@@ -1,0 +1,59 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Pages /Kids [6 0 R] /Count 1 >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Times-Italic >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Times-Bold >>
+endobj
+5 0 obj
+<< /Length 1018 >>
+stream
+BT /FB 20 Tf 1 0 0 1 60 730 Tm (Formula Conversion Fixture) Tj ET
+BT /F1 12 Tf 1 0 0 1 60 680 Tm (The first equation states the relation between three squared lengths.) Tj ET
+BT /FI 22 Tf 1 0 0 1 220 620 Tm (a) Tj ET
+BT /F1 12 Tf 1 0 0 1 232 631 Tm (2) Tj ET
+BT /F1 22 Tf 1 0 0 1 248 620 Tm (+) Tj ET
+BT /FI 22 Tf 1 0 0 1 272 620 Tm (b) Tj ET
+BT /F1 12 Tf 1 0 0 1 284 631 Tm (2) Tj ET
+BT /F1 22 Tf 1 0 0 1 302 620 Tm (=) Tj ET
+BT /FI 22 Tf 1 0 0 1 328 620 Tm (c) Tj ET
+BT /F1 12 Tf 1 0 0 1 340 631 Tm (2) Tj ET
+BT /F1 12 Tf 1 0 0 1 60 560 Tm (The squared terms belong to the equation above, not this sentence.) Tj ET
+BT /F1 12 Tf 1 0 0 1 60 500 Tm (The second equation divides one sum by another sum.) Tj ET
+BT /FI 22 Tf 1 0 0 1 222 426 Tm (x) Tj ET
+BT /F1 22 Tf 1 0 0 1 246 426 Tm (=) Tj ET
+BT /FI 20 Tf 1 0 0 1 281 443 Tm (a + b) Tj ET
+0.8 w 276 436 m 337 436 l S
+BT /FI 20 Tf 1 0 0 1 281 413 Tm (c + d) Tj ET
+BT /F1 12 Tf 1 0 0 1 60 350 Tm (The denominator is the sum of c and d. This concludes the example.) Tj ET
+
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 1 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 2 0 R /FI 3 0 R /FB 4 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Type /Catalog /Pages 1 0 R >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000015 00000 n 
+0000000072 00000 n 
+0000000144 00000 n 
+0000000217 00000 n 
+0000000288 00000 n 
+0000001358 00000 n 
+0000001504 00000 n 
+trailer
+<< /Size 8 /Root 7 0 R >>
+startxref
+1553
+%%EOF

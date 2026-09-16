@@ -1,5 +1,8 @@
 # Regression fixtures
 
+The separate Milestone G formula fixture, generator, expected equations, and
+offline test instructions are in [`formulas/README.md`](formulas/README.md).
+
 This directory is the small, checked-in Milestone A corpus. Each PDF has an
 adjacent `*.facts.json` file containing explicit content, order, structure, link,
 and artifact assertions. The normal unit suite validates the corpus and the

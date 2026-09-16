@@ -13,7 +13,7 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after the completed manifest and output-reuse milestone.
+Current state after Milestone G.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -24,7 +24,7 @@ Current state after the completed manifest and output-reuse milestone.
 | D: drop-cap diagnosis | 7 | done |
 | E: image scale | 8 | done |
 | F: manifest and skip-existing | 9 | done |
-| G: live formula test | 10 | not started |
+| G: live formula test | 10 | done |
 
 Landed for sections 1-7:
 
@@ -271,8 +271,7 @@ default `quality` profile):
 
 Quality Report v2 is complete when milestones 1-6 pass, the report documents its
 limits honestly, and the README examples match the new output. This condition is
-satisfied, and sections 7-9 are also complete. Section 10 is next and has
-not been started.
+satisfied, and sections 7-9 are also complete. Milestone G is complete.
 
 ## 7. Lost decorative drop caps
 
@@ -400,6 +399,36 @@ test `--formula` with a real PDF.
 - Test both fast and quality profiles.
 - Verify and document interrupted-download recovery instead of assuming it.
 - Keep ordinary conversion usable when the optional model is unavailable.
+
+Completed (2026-09-15, Docling 2.124.0):
+
+- Completed the authorized CodeFormulaV2 download at snapshot
+  `ecedbe111d15c2dc60bfd4a823cbe80127b58af4` and verified the full model SHA-256.
+  A stalled standard download required a development-only bounded range transfer;
+  existing partial files were preserved. No model files were added to Git.
+- Added an original, reproducible PDF with raised exponents, a drawn fraction,
+  and surrounding prose. Both fast and quality profiles produce correct LaTeX
+  in JSON and Markdown, preserve prose and equation order, and complete reports
+  and manifests offline.
+- Verified the installed Hub 1.29.0 client starts a new partial file at offset
+  zero. Its actual temporary-file lifecycle also passes a simulated interrupted
+  transfer/retry check. Both READMEs now document restart rather than promising
+  byte resume; the development range-transfer recovery is distinguished from
+  normal application behavior in `docs/FORMULA_VERIFICATION.md`.
+- With optional formula-engine creation made unavailable, ordinary conversion
+  passes in both profiles; explicit formula conversion fails visibly and leaves
+  its manifest incomplete. No runtime behavior or dependency was changed.
+- Verification: 2 focused fixture tests passed; 3 opt-in offline formula tests
+  passed; full discovery reports 224 tests OK with 7 live-test skips.
+- Known limits: two simple equations are a regression gate, not general formula
+  accuracy evidence. Upstream Transformers configuration warnings remain
+  documented. Milestones A-G are complete; deferred work remains deferred.
+- Review follow-up (2026-09-16): pin the recorded snapshot in test-only formula
+  options; separate the Hub 1.29.0 diagnostic behind its own opt-in flag and skip
+  other Hub versions explicitly. Four focused tests and the diagnostic pass;
+  full discovery reports 226 tests OK with seven opt-in skips. The pinned runtime
+  options and snapshot availability were checked offline; model inference was
+  not repeated for this test-configuration change.
 
 ## Deferred: merged-cell HTML tables
 
