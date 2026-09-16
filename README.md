@@ -321,3 +321,23 @@ has cached every model, the fully offline integration instructions are in
 
 The conversion engine is [Docling](https://github.com/docling-project/docling),
 distributed separately under its own license.
+
+## Compare an existing PDF and Markdown
+
+Compare a source PDF with Markdown produced by any tool or person, without
+converting again or requiring Docling JSON or models:
+
+```powershell
+.\pdf-receipt.bat compare source.pdf existing.md --report comparison.md
+```
+
+Both inputs stay unchanged. The command creates a separate report and refuses
+an existing target. Without `--report`, it writes `<markdown-stem>_comparison.md`
+beside the Markdown. It reports text losses, additions, substitutions and order
+risks with page/line evidence, plus supported local inline image checks.
+Differences are a successful comparison; input/write errors return failure.
+
+PDF text is comparison evidence, not guaranteed truth. Pages without comparable
+text remain unverified; no OCR or visual-fidelity verification is performed.
+Markdown dialect limitations and all options are documented in
+[the comparison guide](docs/COMPARISON.md) and `compare --help`.

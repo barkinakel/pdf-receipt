@@ -316,3 +316,24 @@ yazılım herhangi bir garanti olmaksızın sunulur.
 
 Dönüşüm motoru [Docling](https://github.com/docling-project/docling)'dir ve
 kendi lisansı altında ayrıca dağıtılır.
+
+## Mevcut PDF ile Markdown karşılaştırma
+
+Kaynak PDF'yi, herhangi bir araç veya kişinin ürettiği Markdown ile yeniden
+dönüştürmeden karşılaştırabilirsiniz. Docling JSON veya model gerekmez:
+
+```powershell
+.\pdf-receipt.bat compare source.pdf existing.md --report comparison.md
+```
+
+İki girdi de değişmeden kalır. Komut ayrı bir rapor oluşturur; mevcut hedefin
+üzerine yazmaz. `--report` verilmezse Markdown'ın yanına
+`<markdown-stem>_comparison.md` yazar. Metin kayıplarını, eklemeleri, değişimleri
+ve sıra risklerini sayfa/satır kanıtıyla gösterir; desteklenen yerel satır içi
+görsel bağlantılarını da kontrol eder. Fark bulunması başarılı bir
+karşılaştırmadır; girdi/yazma hataları başarısızlık kodu döndürür.
+
+PDF metni karşılaştırma kanıtıdır, kesin doğru kabul edilmez. Karşılaştırılabilir
+metni olmayan sayfalar doğrulanmamış kalır; OCR veya görsel doğruluk denetimi
+yapılmaz. Markdown biçimi sınırlamaları ve tüm seçenekler
+[karşılaştırma rehberinde](docs/COMPARISON.md) ve `compare --help` içinde açıklanır.

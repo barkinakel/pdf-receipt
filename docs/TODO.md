@@ -13,7 +13,7 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after Milestone G.
+Current state after Milestone H.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -429,6 +429,70 @@ Completed (2026-09-15, Docling 2.124.0):
   full discovery reports 226 tests OK with seven opt-in skips. The pinned runtime
   options and snapshot availability were checked offline; model inference was
   not repeated for this test-configuration change.
+
+## 11. Independent PDF-to-Markdown comparison (Milestone H)
+
+Compare an existing source PDF with an existing Markdown file, regardless of
+which tool or person produced the Markdown. Do not require Docling JSON, rerun
+conversion, load models, infer a conversion tool, or attribute differences to
+intermediate processing stages.
+
+CLI contract:
+
+```powershell
+.\pdf-receipt.bat compare source.pdf existing.md --report comparison.md
+```
+
+- Read both inputs without modifying them. Write a separate Markdown report;
+  default to `<markdown-stem>_comparison.md` beside the Markdown. Refuse an
+  existing report target instead of overwriting user files.
+- Compare PDF text-layer tokens directly with visible Markdown text using
+  bounded ordered alignment and globally one-to-one occurrence accounting.
+- Preserve PDF page/raw-span evidence and Markdown line/raw-span evidence.
+  Report accepted transfer, missing and added occurrences, substitutions and
+  reading-order risks separately, with explicit denominators and empty cases.
+- Do not guess page numbers for target-only additions. Do not explain losses
+  away as figures, furniture, or footnotes without independent evidence.
+- Show per-page source accounting and bounded representative differences with
+  both contexts; disclose when additional differences are omitted.
+- Mark pages without comparable text as unverified. Rates concern only the
+  available text layer, never full-document accuracy; source reading order may
+  itself be wrong. No OCR or network access is introduced.
+- Check supported local Markdown image references relative to the Markdown
+  directory, decode them and report missing/empty/invalid/outside-root targets.
+  Never fetch remote images. Document Markdown dialect and visual-fidelity
+  limits; link validity is not proof of PDF image preservation.
+- Keep existing conversion CLI behavior and two-stage reports unchanged.
+
+Acceptance:
+
+- Tests cover matching inputs, missing/added/repeated tokens across pages,
+  substitutions, order risks, Unicode/short tokens, empty and scanned sources,
+  Markdown syntax, line/page evidence, and invalid image targets.
+- A real checked-in PDF and independently authored Markdown can be compared
+  offline without creating a Docling runtime or requiring a JSON document.
+- CLI validates inputs, rejects conversion-only flags, preserves both inputs
+  and existing output files, and reports errors clearly. Differences are a
+  successful comparison (exit 0); input/write failures return nonzero.
+- Update both READMEs and a dedicated comparison contract document. Run focused
+  tests, the full unit suite, and inspect the final diff. Preserve pending
+  Milestone G changes and do not commit without explicit authorization.
+
+Completed (2026-09-16):
+
+- Added `compare` with independent UTF-8 Markdown input, exclusive report
+  creation, explicit case profile and a configurable representative-issue limit.
+- Added direct global occurrence alignment without intermediate-document
+  explanations, per-page accounting, raw/normalized location evidence and
+  explicit unverified text-layer coverage.
+- Added supported inline image diagnostics without remote fetching. The report
+  and `docs/COMPARISON.md` document the lightweight Markdown dialect and the
+  lack of visual/structural fidelity verification; both READMEs describe usage.
+- Verification: 13 focused tests passed; full discovery reports 239 tests OK
+  with seven opt-in skips. Real source and scanned PDFs are exercised offline.
+  Final diff checks passed. Pending Milestone G work was preserved.
+- No dependency, download, conversion-default change or commit was introduced.
+  Follow-up work is now ordered in sections 12-16; deferred table work remains deferred.
 
 ## Deferred: merged-cell HTML tables
 

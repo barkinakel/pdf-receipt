@@ -20,6 +20,7 @@ HyphenDecision = Literal["keep", "join"]
 
 
 class AlignmentStage(str, Enum):
+    DIRECT = "direct"
     EXTRACTION = "extraction"
     SERIALIZATION = "serialization"
 
@@ -743,6 +744,31 @@ def align_extraction(
         operations=tuple(operations),
         case_profile=case_profile,
     )
+
+
+
+
+
+
+def align_direct(
+    source_tokens: Sequence[AlignableToken],
+    target_tokens: Sequence[AlignableToken],
+    *,
+    case_profile: str,
+) -> AlignmentResult:
+    """Compare endpoints globally without intermediate-document explanations."""
+    _validate_case_profiles((source_tokens, target_tokens), case_profile)
+    source = tuple(_snapshot(i, token) for i, token in enumerate(source_tokens))
+    target = tuple(_snapshot(i, token) for i, token in enumerate(target_tokens))
+    source_items = list(enumerate(source_tokens))
+    target_items = list(enumerate(target_tokens))
+    operations = _align_partition(
+        source_items, target_items, stage=AlignmentStage.DIRECT,
+        source_evidence=source, target_evidence=target,
+    )
+    operations = _mark_order_risks(operations, AlignmentStage.DIRECT)
+    operations = _coalesce_substitutions(operations)
+    return AlignmentResult(AlignmentStage.DIRECT, source, target, tuple(operations), case_profile)
 
 
 def align_serialization(
