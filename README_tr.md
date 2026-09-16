@@ -324,6 +324,7 @@ dönüştürmeden karşılaştırabilirsiniz. Docling JSON veya model gerekmez:
 
 ```powershell
 .\pdf-receipt.bat compare source.pdf existing.md --report comparison.md
+.\pdf-receipt.bat compare source.pdf existing.md --json-report comparison.json
 ```
 
 İki girdi de değişmeden kalır. Komut ayrı bir rapor oluşturur; mevcut hedefin
@@ -332,6 +333,12 @@ dönüştürmeden karşılaştırabilirsiniz. Docling JSON veya model gerekmez:
 ve sıra risklerini sayfa/satır kanıtıyla gösterir; yerel satır içi, referanslı ve
 HTML görsel bağlantılarını da kontrol eder. Fark bulunması başarılı bir
 karşılaştırmadır; girdi/yazma hataları başarısızlık kodu döndürür.
+
+`--json-report`, Markdown'ın yanında sürümlenmiş bir JSON raporu üretir. İkisi
+aynı karşılaştırma sonucunu kullanır; Markdown'da gösterilmeyen gruplar olsa da
+JSON bütün kelime kayıtlarını korur. Dosyalardan biri yazılamazsa başarılı çıktılar
+kalır ve komut ilgili yolu belirterek hata kodu döndürür.
+[JSON sözleşmesinde](docs/COMPARISON_JSON.md) ayrıntıları bulabilirsiniz.
 
 PDF metni karşılaştırma kanıtıdır, kesin doğru kabul edilmez. Karşılaştırılabilir
 metni olmayan sayfalar doğrulanmamış kalır; OCR veya görsel doğruluk denetimi

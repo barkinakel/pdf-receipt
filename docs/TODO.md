@@ -13,7 +13,8 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after Milestone K.
+Current state after the completed structured-comparison milestone L.
+The next milestone M adds explicit batch comparison.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -25,6 +26,12 @@ Current state after Milestone K.
 | E: image scale | 8 | done |
 | F: manifest and skip-existing | 9 | done |
 | G: live formula test | 10 | done |
+| H: independent comparison | 11 | done |
+| I: real-document comparison evaluation | 12 | done: selected pilot; gaps documented |
+| J: comparison reliability and Markdown support | 13 | done |
+| K: readable grouped differences | 14 | done |
+| L: structured comparison JSON | 15 | done |
+| M: batch comparison | 16 | planned |
 
 Landed for sections 1-7:
 
@@ -271,7 +278,7 @@ default `quality` profile):
 
 Quality Report v2 is complete when milestones 1-6 pass, the report documents its
 limits honestly, and the README examples match the new output. This condition is
-satisfied, and sections 7-9 are also complete. Milestone G is complete.
+satisfied, and sections 7-10 are also complete.
 
 ## 7. Lost decorative drop caps
 
@@ -620,6 +627,72 @@ Grouped reports were inspected for the source-order/caption case; diff checks pa
   ordering. Revisit I's report-readability findings; update both READMEs and the
   contract, run focused/full tests and inspect the diff.
 
+## 15. Structured comparison JSON (Milestone L)
+
+Completed (2026-09-16): `--json-report PATH` adds schema `1.0` alongside the
+default Markdown report. Both serializers share one typed result and one
+alignment/image inspection. JSON retains complete token and operation evidence,
+nullable rates, coverage, settings, images and group omission metadata. Paths
+are preflighted together and created exclusively; independent write failures
+return exit 1 while retaining successful outputs and reporting possible partial
+files. The schema and recovery contract are in `docs/COMPARISON_JSON.md`.
+Review also reproduced and fixed nested inline HTML template leakage, hidden
+image inventory and custom-tag prefix handling. No dependency or network access
+was added. M is ready to be requested and has not been implemented.
+Verification: 57 focused tests passed; full discovery reports 283 tests OK with
+seven opt-in skips. Python 3.10 syntax checks passed. The selected pilot's JSON
+accounts for every occurrence once; Markdown matches K and input hashes are
+unchanged. Final diff checks and the cumulative review are documented in
+`docs/COMPARISON_REVIEW.md`.
+
+- Add opt-in machine-readable comparison output with a documented versioned
+  schema. Preserve the existing default Markdown report and exit behavior.
+- Include settings, coverage/unverified pages, count denominators, nullable
+  rates, source/target evidence, image diagnostics and truncation metadata.
+- Build Markdown and JSON from the same typed comparison result, avoiding a
+  second alignment or scraping the rendered report. State whether occurrence
+  details are complete or bounded; never silently omit evidence.
+- Preserve input/output collision checks and exclusive creation; define visible
+  partial-success behavior if one of several requested report writes fails.
+- Test schema facts, Unicode, empty denominators, consistency with Markdown,
+  deterministic ordering and write errors. Update both READMEs and the contract;
+  run focused/full tests and inspect the diff.
+
+## 16. Batch comparison (Milestone M)
+
+- Follow L with explicit PDF/Markdown pair-list input; define a versioned format
+  and relative-path base. Do not guess pairing from ambiguous basenames.
+- Detect duplicate pairs, missing inputs and report-name collisions before
+  writing. Preserve all inputs and existing output files.
+- Isolate pair failures, continue independent pairs and provide an aggregate
+  Markdown/JSON summary. Distinguish failed comparisons from successful reports
+  containing differences or unverified evidence.
+- Reuse single-pair semantics and avoid models, network access or automatic
+  conversion. Keep bounded processing and deterministic order; parallelism is
+  not required for this milestone.
+- Test mixed success/failure, duplicate stems in different folders, Unicode and
+  Windows paths. Document commands in both READMEs and the comparison contract;
+  run focused/full tests and inspect the diff.
+
+## Integration queue after the current comparison milestones
+
+This queue records justified candidates; it does not start another milestone
+or authorize package/corpus downloads. See `docs/COMPARISON_INTEGRATIONS.md`.
+
+1. **Completed within J:** adopted one source-mapped Markdown parser after
+   direct-dependency approval and the source-offset regression gate.
+2. **After L/M:** a development-only adapter for already acquired, hash-verified
+   endpoint pairs and explicit reference facts. Reuse structured comparison
+   results, preserve upstream fact IDs and dataset terms, and run offline.
+   Start with the available corpus; additional datasets need separate approval.
+3. **Conditional research:** isolate `docling-eval` or selected `docling-metrics`
+   components only when an independent table/text reference and a need for
+   upstream-comparable scores exist. Prove Windows/offline installation first.
+   Do not add a second converter, remote judge or default benchmark downloads.
+
+The next implementation milestone is M after L; these candidates do not
+replace or implicitly broaden sections 14-16.
+
 ## Deferred: merged-cell HTML tables
 
 Markdown pipe tables cannot represent `colspan` or `rowspan`; the real structure
@@ -643,6 +716,12 @@ the entire open-ended backlog:
 5. Milestone E: image scale (section 8)
 6. Milestone F: manifest and skip-existing (section 9)
 7. Milestone G: live formula test when network is available (section 10)
+8. Milestone H: independent PDF-to-Markdown comparison (section 11)
+9. Milestone I: real-document comparison evaluation (section 12)
+10. Milestone J: comparison reliability and Markdown support (section 13)
+11. Milestone K: readable grouped differences (section 14)
+12. Milestone L: structured comparison JSON (section 15)
+13. Milestone M: batch comparison (section 16)
 
 Within each run, the agent should inspect the relevant code first, add failing
 tests for the contract, implement the smallest cohesive change, run focused and

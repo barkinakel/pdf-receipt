@@ -1,5 +1,15 @@
 # Independent PDF-to-Markdown comparison
 
+Development follow-up: [the evaluation protocol](COMPARISON_EVALUATION.md)
+defines real-document sampling and review. Batch comparison remains planned in
+[TODO section 16](TODO.md). Optional JSON output has a
+[versioned contract](COMPARISON_JSON.md).
+The [first real-document pilot](COMPARISON_PILOT_RESULTS.md) found parser and
+alignment limitations. J's alignment fix now handles pure paragraph duplication
+without spurious movement and recovers contextual hyphen joins in moved text.
+J also fixes literal angle-bracket masking through source-mapped Markdown parsing.
+Read individual evidence rather than interpreting transfer rates as accuracy.
+
 Milestone H adds an offline comparison of an existing PDF and an existing
 Markdown file. The Markdown can come from any tool or person. No Docling JSON,
 conversion runtime, model setup or network service is used by this command.
@@ -9,6 +19,7 @@ The installed Python dependencies are still required.
 .\pdf-receipt.bat compare source.pdf existing.md
 .\pdf-receipt.bat compare source.pdf existing.md --report comparison.md --issue-limit 100
 .\pdf-receipt.bat compare source.pdf existing.md --case-profile turkic
+.\pdf-receipt.bat compare source.pdf existing.md --json-report comparison.json
 ```
 
 Inputs are read without modification. Markdown must be UTF-8 (an initial BOM is
@@ -17,6 +28,10 @@ accepted), with an `.md` or `.markdown` extension. The default report is
 already exist. Existing targets and input paths are refused; exclusive creation
 also protects against a target appearing while the comparison runs. A write
 failure can leave a partial report: choose another report path for a retry.
+`--json-report PATH` adds complete structured evidence alongside Markdown.
+All paths are validated before writing. If either write fails, the other is
+still attempted, completed outputs remain, and the command returns exit 1 with
+the failed path. See [JSON write semantics](COMPARISON_JSON.md).
 Relative paths follow the process working directory; the batch launcher changes
 that directory to the repository. Use absolute paths for inputs elsewhere.
 
@@ -138,6 +153,8 @@ status and are separate from text counts.
 ## Verification
 
 `tests/test_markdown_evidence.py` covers the dialect and original source spans.
+`tests/test_comparison_json.py` covers the JSON contract, shared computation,
+exclusive writes, path collisions and partial-success diagnostics.
 `tests/test_comparison_groups.py` covers size ranking, ties, page boundaries,
 movement, repetitions, mixed edits, display bounds and retained evidence.
 `tests/test_comparison.py` covers occurrence accounting across pages, repetitions,
@@ -148,6 +165,6 @@ Markdown without creating a Docling runtime. These are deterministic offline
 regression checks, not a general accuracy benchmark.
 
 ```powershell
-.venv\Scripts\python.exe -m unittest tests.test_comparison_groups tests.test_markdown_evidence tests.test_comparison
+.venv\Scripts\python.exe -m unittest tests.test_comparison_json tests.test_comparison_groups tests.test_markdown_evidence tests.test_comparison
 .venv\Scripts\python.exe -m unittest discover -s tests -t .
 ```

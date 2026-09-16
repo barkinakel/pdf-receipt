@@ -329,6 +329,7 @@ converting again or requiring Docling JSON or models:
 
 ```powershell
 .\pdf-receipt.bat compare source.pdf existing.md --report comparison.md
+.\pdf-receipt.bat compare source.pdf existing.md --json-report comparison.json
 ```
 
 Both inputs stay unchanged. The command creates a separate report and refuses
@@ -336,6 +337,11 @@ an existing target. Without `--report`, it writes `<markdown-stem>_comparison.md
 beside the Markdown. It reports text losses, additions, substitutions and order
 risks with page/line evidence, plus local inline/reference and HTML image checks.
 Differences are a successful comparison; input/write errors return failure.
+
+`--json-report` adds a versioned JSON report alongside Markdown. Both use the
+same comparison result; JSON retains every occurrence even when Markdown groups
+are omitted. If one write fails, successful outputs remain and the command
+returns failure with the affected path. See [the JSON contract](docs/COMPARISON_JSON.md).
 
 PDF text is comparison evidence, not guaranteed truth. Pages without comparable
 text remain unverified; no OCR or visual-fidelity verification is performed.

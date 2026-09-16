@@ -4,17 +4,47 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from dataclasses import dataclass
 from html import escape
 from pathlib import Path
 import re
+import os
 import sys
 
 from . import alignment as al
 from . import quality_report as qr
 from . import structural_integrity as si
-from .quality_metrics import summarize_alignment
+from .quality_metrics import StageMetrics, summarize_alignment
 from .markdown_evidence import parse_markdown
-from .comparison_groups import group_differences
+from .comparison_groups import DifferenceGroup, group_differences
+
+
+@dataclass(frozen=True)
+class ComparisonResult:
+    pdf: qr.PdfText
+    markdown: str
+    markdown_path: Path
+    alignment: al.AlignmentResult
+    metrics: StageMetrics
+    groups: tuple[DifferenceGroup, ...]
+    images: tuple[tuple[int, str, str], ...]
+    page_counts: tuple[tuple[tuple[str, int], ...], ...]
+    issue_limit: int
+
+
+def build_comparison(pdf: qr.PdfText, markdown: str, markdown_path: Path,
+                     *, issue_limit: int = 50) -> ComparisonResult:
+    if issue_limit < 1:
+        raise ValueError("issue_limit must be positive")
+    result = compare_text(pdf, markdown)
+    pages = [Counter() for _ in pdf.pages]
+    for op in result.operations:
+        if op.source_token is not None:
+            pages[op.source_token.page_no - 1][op.type.value] += 1
+    return ComparisonResult(pdf, markdown, markdown_path, result,
+                            summarize_alignment(result, issue_limit=0),
+                            group_differences(result), tuple(image_checks(markdown, markdown_path)),
+                            tuple(tuple(sorted(page.items())) for page in pages), issue_limit)
 
 
 def compare_text(pdf: qr.PdfText, markdown: str) -> al.AlignmentResult:
@@ -76,8 +106,9 @@ def _excerpt(tokens: tuple[al.TokenEvidence, ...]) -> str:
     return _code(text[:800]) + (" (excerpt truncated at 800 characters)" if len(text) > 800 else "")
 
 
-def _group_report(result: al.AlignmentResult, markdown: str, issue_limit: int) -> list[str]:
-    groups = group_differences(result)
+def _group_report(comparison: ComparisonResult) -> list[str]:
+    result, markdown, issue_limit = comparison.alignment, comparison.markdown, comparison.issue_limit
+    groups = comparison.groups
     selected = groups[:issue_limit]
     total = sum(len(group.operations) for group in groups)
     shown = sum(len(group.operations) for group in selected)
@@ -128,14 +159,13 @@ def _group_report(result: al.AlignmentResult, markdown: str, issue_limit: int) -
 
 def render_report(pdf: qr.PdfText, markdown: str, markdown_path: Path,
                   *, issue_limit: int = 50) -> str:
-    if issue_limit < 1:
-        raise ValueError("issue_limit must be positive")
-    result = compare_text(pdf, markdown)
-    metrics = summarize_alignment(result, issue_limit=0)
-    pages = {page: Counter() for page in range(1, len(pdf.pages) + 1)}
-    for op in result.operations:
-        if op.source_token is not None:
-            pages[op.source_token.page_no][op.type.value] += 1
+    return render_markdown(build_comparison(pdf, markdown, markdown_path, issue_limit=issue_limit))
+
+
+def render_markdown(comparison: ComparisonResult) -> str:
+    pdf, markdown_path = comparison.pdf, comparison.markdown_path
+    result, metrics = comparison.alignment, comparison.metrics
+    pages = {page: Counter(dict(counts)) for page, counts in enumerate(comparison.page_counts, 1)}
     unverified = [str(page) for page, count in pages.items() if not sum(count.values())]
 
     def rate(numerator: int, denominator: int) -> str:
@@ -176,7 +206,7 @@ def render_report(pdf: qr.PdfText, markdown: str, markdown_path: Path,
         lines.append(f"| {page} | {sum(count.values())} | {count['match']} | "
                      f"{count['deletion']} | {count['substitution']} | {count['order_risk']} |")
     lines += ["", "Target-only additions are not assigned to PDF pages.", ""]
-    lines += _group_report(result, markdown, issue_limit)
+    lines += _group_report(comparison)
     lines += ["## Image references and Markdown limits", "",
               "Inline/reference Markdown images and HTML img src targets are checked, relative to the Markdown directory. "
               "Remote targets are never fetched; paths outside that directory are not opened. "
@@ -186,7 +216,7 @@ def render_report(pdf: qr.PdfText, markdown: str, markdown_path: Path,
               "image alt text, destinations, definitions and HTML comments are excluded. HTML "
               "tables contribute text only; math remains lexical text. CSS, JavaScript, extensions "
               "such as footnotes, and image srcset are not interpreted. See docs/COMPARISON.md.", ""]
-    checks = image_checks(markdown, markdown_path)
+    checks = comparison.images
     lines.extend(f"- Line {line}: {_code(target)} — {_code(status)}" for line, target, status in checks)
     if not checks:
         lines.append("No supported image references found; this does not prove there are no images.")
@@ -209,6 +239,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("pdf", type=Path)
     parser.add_argument("markdown", type=Path)
     parser.add_argument("--report", type=Path, help="New report path; default: <Markdown stem>_comparison.md. Never overwrite.")
+    parser.add_argument("--json-report", type=Path, help="Also write versioned JSON with complete occurrence evidence to this new path. Markdown is still written; any write failure returns exit 1 and successful outputs remain.")
     parser.add_argument("--case-profile", choices=("unicode", "turkic"), default="unicode")
     parser.add_argument("--issue-limit", type=_positive, default=50, help="Maximum difference groups (default: 50), largest first; up to 40 operations per group. Counts stay complete; shown groups include all occurrence details.")
     args = parser.parse_args(argv)
@@ -221,16 +252,36 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Markdown input must be an existing .md or .markdown file")
         output = (args.report.expanduser() if args.report else
                   markdown_path.with_name(markdown_path.stem + "_comparison.md")).absolute()
-        if output.resolve() in {pdf_path, markdown_path} or si._long_path(output).exists():
-            raise FileExistsError(f"Report target already exists or is an input: {output}")
+        outputs = [("Markdown", output)]
+        if args.json_report is not None:
+            outputs.append(("JSON", args.json_report.expanduser().absolute()))
+        resolved = {pdf_path, markdown_path}
+        for _, path in outputs:
+            if path.resolve() in resolved or os.path.lexists(si._long_path(path)):
+                raise FileExistsError(f"Report target already exists or collides with another path: {path}")
+            if not si._long_path(path.parent).is_dir():
+                raise FileNotFoundError(f"Report parent directory does not exist: {path.parent}")
+            resolved.add(path.resolve())
         with si._long_path(markdown_path).open(encoding="utf-8-sig", newline="") as handle:
             markdown = handle.read()
         pdf = qr.read_pdf_text(si._long_path(pdf_path), case_profile=args.case_profile)
-        report = render_report(pdf, markdown, markdown_path, issue_limit=args.issue_limit)
-        with si._long_path(output).open("x", encoding="utf-8", newline="\n") as handle:
-            handle.write(report)
-        print(f"Comparison report: {output}")
-        return 0
+        comparison = build_comparison(pdf, markdown, markdown_path, issue_limit=args.issue_limit)
+        reports = [render_markdown(comparison)]
+        if args.json_report is not None:
+            from .comparison_json import render_json
+            reports.append(render_json(comparison))
+        failed = False
+        for (kind, path), report in zip(outputs, reports):
+            try:
+                with si._long_path(path).open("x", encoding="utf-8", newline="\n") as handle:
+                    handle.write(report)
+                label = "Comparison report" if kind == "Markdown" else "Comparison JSON report"
+                print(f"{label}: {path}")
+            except Exception as exc:
+                failed = True
+                print(f"Comparison {kind} report failed: {path}: {exc}. "
+                      "Other completed outputs are retained; a partial file may remain at this path.", file=sys.stderr)
+        return 1 if failed else 0
     except Exception as exc:
         print(f"Comparison failed: {exc}", file=sys.stderr)
         return 1
