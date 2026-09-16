@@ -348,6 +348,12 @@ locations. Code stays literal; HTML tables provide text only and math is checked
 as lexical text. CSS, JavaScript and Markdown extensions such as footnotes are
 not interpreted.
 
+Adjacent differences now appear in groups, with larger groups first. Missing
+text and suspected movement stay separate. `--issue-limit` limits groups;
+expand each group's occurrence details to inspect raw text and source positions.
+Excerpts are bounded and omissions are disclosed; counts cover the full document.
+The ordering reflects size, not semantic importance or confidence.
+
 [Real-document evaluation](docs/COMPARISON_EVALUATION.md) continues; batch
 comparison remains [planned work](docs/TODO.md).
 Measurements are being re-taken.

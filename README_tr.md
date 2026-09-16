@@ -344,6 +344,12 @@ destekler. Referans bağlantıları, iç içe biçimlendirme ve HTML karakter ko
 yalnızca metin sağlar, matematik ise metinsel tokenlarla denetlenir. CSS,
 JavaScript ve dipnot gibi Markdown uzantıları yorumlanmaz.
 
+Bitişik farklar artık gruplar halinde, büyük gruplar önce gösteriliyor. Eksik
+metin ile olası taşınmalar ayrı tutuluyor. `--issue-limit` grup sayısını sınırlar;
+ham metni ve kaynak konumlarını incelemek için grubun kelime bazındaki ayrıntılarını
+açabilirsiniz. Alıntılar sınırlıdır ve gösterilmeyenler belirtilir; sayımlar tüm
+belgeyi kapsar. Sıralama büyüklüğü gösterir, anlamsal önemi veya güven düzeyini değil.
+
 [Gerçek belge değerlendirmesi](docs/COMPARISON_EVALUATION.md) sürüyor;
 toplu karşılaştırma [planlanan işler arasındadır](docs/TODO.md).
 Ölçümler yeniden yapılıyor.

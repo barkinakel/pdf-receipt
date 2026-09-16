@@ -14,6 +14,7 @@ from . import quality_report as qr
 from . import structural_integrity as si
 from .quality_metrics import summarize_alignment
 from .markdown_evidence import parse_markdown
+from .comparison_groups import group_differences
 
 
 def compare_text(pdf: qr.PdfText, markdown: str) -> al.AlignmentResult:
@@ -69,8 +70,60 @@ def _evidence(token: al.TokenEvidence | None, markdown: str, *, source: bool) ->
             f"{_code(token.raw_text)}; normalized {_code(token.normalized_text)}")
 
 
+def _excerpt(tokens: tuple[al.TokenEvidence, ...]) -> str:
+    """A bounded token excerpt; exact raw spellings remain in occurrence details."""
+    text = " ".join(token.raw_text for token in tokens)
+    return _code(text[:800]) + (" (excerpt truncated at 800 characters)" if len(text) > 800 else "")
 
 
+def _group_report(result: al.AlignmentResult, markdown: str, issue_limit: int) -> list[str]:
+    groups = group_differences(result)
+    selected = groups[:issue_limit]
+    total = sum(len(group.operations) for group in groups)
+    shown = sum(len(group.operations) for group in selected)
+    lines = ["## Grouped differences", "",
+             f"Showing {len(selected)} of {len(groups)} groups; omitted {len(groups) - len(selected)} groups. "
+             f"Details cover {shown} of {total} difference operations; omitted {total - shown} operations.", "",
+             "Size-based priority: descending operation count, ties in original alignment order. "
+             "This is not semantic importance or model confidence. Groups contain at most 40 "
+             "same-kind adjacent operations and split at page boundaries or endpoint discontinuities. "
+             "Context uses up to three neighboring tokens on each side; excerpts are capped at 800 characters. "
+             "Increase --issue-limit in a new report to see omitted groups. Raw occurrence details "
+             "for every displayed group remain complete. Spans are zero-based, half-open character offsets.", ""]
+    labels = {al.OperationType.DELETION: "Missing text (text-layer evidence)",
+              al.OperationType.INSERTION: "Added text",
+              al.OperationType.SUBSTITUTION: "Substituted text",
+              al.OperationType.ORDER_RISK: "Suspected movement (order risk, not verified loss)"}
+    for number, group in enumerate(selected, 1):
+        operations = group.operations
+        lines += [f"### {number}. {labels[operations[0].type]} — {len(operations)} operations", ""]
+        for source, label, stream in ((True, "PDF", result.source_tokens),
+                                      (False, "Markdown", result.target_tokens)):
+            tokens = tuple(op.source_token if source else op.target_token for op in operations)
+            present = tuple(token for token in tokens if token is not None)
+            if present:
+                first, last = present[0], present[-1]
+                location = (f"PDF page {first.page_no}" if source else
+                            f"Markdown lines {_line_number(markdown, first.source_span.start)}"
+                            f"-{_line_number(markdown, last.source_span.end)}")
+                lines.append(f"- {location}, raw span [{first.source_span.start}, {last.source_span.end}): " + _excerpt(present))
+                context = stream[max(0, first.index - 3):last.index + 4]
+                if source:
+                    context = tuple(t for t in context if t.page_no == first.page_no)
+                lines.append(f"- {label} context: " + _excerpt(context))
+            else:
+                lines.append(f"- {label}: No corresponding occurrence (page unknown).")
+                bounds = operations[0].source_context if source else operations[0].target_context
+                context = stream[bounds.start:bounds.end]
+                lines.append(f"- {label} context (alignment gap, not a corresponding occurrence): " + _excerpt(context))
+        lines += ["", "<details>", "<summary>Occurrence details</summary>", ""]
+        for offset, op in enumerate(operations, group.first_operation):
+            lines += [f"- Operation {offset}: {op.type.value}; source occurrence {op.source_index}; "
+                      f"target occurrence {op.target_index}",
+                      "  - " + _evidence(op.source_token, markdown, source=True),
+                      "  - " + _evidence(op.target_token, markdown, source=False)]
+        lines += ["", "</details>", ""]
+    return lines
 
 
 def render_report(pdf: qr.PdfText, markdown: str, markdown_path: Path,
@@ -78,7 +131,7 @@ def render_report(pdf: qr.PdfText, markdown: str, markdown_path: Path,
     if issue_limit < 1:
         raise ValueError("issue_limit must be positive")
     result = compare_text(pdf, markdown)
-    metrics = summarize_alignment(result, issue_limit=issue_limit)
+    metrics = summarize_alignment(result, issue_limit=0)
     pages = {page: Counter() for page in range(1, len(pdf.pages) + 1)}
     for op in result.operations:
         if op.source_token is not None:
@@ -123,16 +176,7 @@ def render_report(pdf: qr.PdfText, markdown: str, markdown_path: Path,
         lines.append(f"| {page} | {sum(count.values())} | {count['match']} | "
                      f"{count['deletion']} | {count['substitution']} | {count['order_risk']} |")
     lines += ["", "Target-only additions are not assigned to PDF pages.", ""]
-    total = sum(op.type != al.OperationType.MATCH for op in result.operations)
-    lines += ["## Representative differences", "",
-              f"Showing {len(metrics.representative_issues)} of {total}; omitted {total - len(metrics.representative_issues)}.", ""]
-    for issue in metrics.representative_issues:
-        op = issue.operation
-        lines += [f"### {op.type.value}", "",
-                  "- " + _evidence(op.source_token, markdown, source=True),
-                  "- " + _evidence(op.target_token, markdown, source=False),
-                  "- PDF context: " + _code(" ".join(t.raw_text for t in issue.source_context)),
-                  "- Markdown context: " + _code(" ".join(t.raw_text for t in issue.target_context)), ""]
+    lines += _group_report(result, markdown, issue_limit)
     lines += ["## Image references and Markdown limits", "",
               "Inline/reference Markdown images and HTML img src targets are checked, relative to the Markdown directory. "
               "Remote targets are never fetched; paths outside that directory are not opened. "
@@ -166,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("markdown", type=Path)
     parser.add_argument("--report", type=Path, help="New report path; default: <Markdown stem>_comparison.md. Never overwrite.")
     parser.add_argument("--case-profile", choices=("unicode", "turkic"), default="unicode")
-    parser.add_argument("--issue-limit", type=_positive, default=50, help="Maximum representative text differences (default: 50); counts remain complete.")
+    parser.add_argument("--issue-limit", type=_positive, default=50, help="Maximum difference groups (default: 50), largest first; up to 40 operations per group. Counts stay complete; shown groups include all occurrence details.")
     args = parser.parse_args(argv)
     try:
         pdf_path = args.pdf.expanduser().resolve()

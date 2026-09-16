@@ -53,8 +53,41 @@ tokens as denominator; additions use Markdown tokens. Empty denominators are
 `n/a`. Both accounting identities and per-page source counts are shown.
 Target-only additions have no inferred PDF page.
 
-Representative differences retain raw/normalized evidence, page, line and character spans.
-`--issue-limit` limits individual differences (default 50); complete counts and omitted examples are disclosed.
+### Grouped differences
+
+Milestone K groups consecutive operations of the same kind into token excerpts.
+An accepted match, a type change, a PDF page boundary or nonconsecutive source
+or target occurrence indexes starts a new group. Groups contain at most 40
+operations; longer passages continue in separate groups. A passage crossing
+pages stays split so that page-local offsets remain unambiguous. Missing text
+and suspected movement always remain separate; source reading order may itself
+be wrong, so an order risk is not a verified loss.
+
+Groups use size-based priority: descending operation count, then original
+alignment position for ties. A substitution counts as one operation for this
+ranking even though it has two endpoints. The size is that of each capped group,
+not the whole original passage. This is not semantic importance or confidence.
+Occurrence order within each group is unchanged.
+
+`--issue-limit` now limits **groups**, rather than individual differences; its
+default remains 50 and any positive integer is accepted. Counts and rates always
+cover the full alignment. The report discloses both omitted groups and omitted
+operations. Increase the limit and choose a new report path to see more groups.
+
+Each group includes excerpts and up to three neighboring tokens on each side;
+PDF context stays on the affected page. A side with no corresponding occurrence
+shows the existing alignment-gap context without assigning that occurrence a
+PDF page. Each excerpt is capped at 800 characters with a truncation label.
+Excerpts join raw token spellings with spaces; they are reading aids, not exact
+source substrings or rendered Markdown.
+
+Expandable **Occurrence details** retain every operation in each displayed
+group, including zero-based occurrence indexes, type, raw and normalized text,
+PDF page, Markdown line and half-open character spans. These details are not
+character-truncated. View the report source if a Markdown viewer does not
+support HTML details. PDF offsets are page-local; Markdown offsets are file-local
+after decoding the optional BOM. Grouping neither reruns alignment nor changes
+the conversion command's two-stage report.
 
 ## Evidence limits
 
@@ -105,6 +138,8 @@ status and are separate from text counts.
 ## Verification
 
 `tests/test_markdown_evidence.py` covers the dialect and original source spans.
+`tests/test_comparison_groups.py` covers size ranking, ties, page boundaries,
+movement, repetitions, mixed edits, display bounds and retained evidence.
 `tests/test_comparison.py` covers occurrence accounting across pages, repetitions,
 loss/addition, substitutions, ordering, Unicode, empty evidence, Markdown syntax,
 location evidence, report truncation, image diagnostics and CLI file protection.
@@ -113,6 +148,6 @@ Markdown without creating a Docling runtime. These are deterministic offline
 regression checks, not a general accuracy benchmark.
 
 ```powershell
-.venv\Scripts\python.exe -m unittest tests.test_markdown_evidence tests.test_comparison
+.venv\Scripts\python.exe -m unittest tests.test_comparison_groups tests.test_markdown_evidence tests.test_comparison
 .venv\Scripts\python.exe -m unittest discover -s tests -t .
 ```

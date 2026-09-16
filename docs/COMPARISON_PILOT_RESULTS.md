@@ -160,3 +160,18 @@ Case 0008 retains the contextual moved joins as order risks; case 0180 still
 matches all 174 occurrences. Original regression tests also cover controlled
 duplication/removal, entities, code, reference images and precise raw positions.
 These checks do not close the pilot's visual or dataset coverage gaps.
+
+## K report review
+
+All 12 selected pairs were rendered again offline into the ignored
+`k-group-recheck/` directory. Operation counts exactly match J's saved results;
+the grouping retains every non-match operation once and input hashes are intact.
+Case 0140 now presents its 56 operations in seven groups, including caption
+excerpts explicitly labeled suspected movement rather than verified loss.
+The group and occurrence locations were inspected against the prior findings.
+Case 0008 still has fragmented endpoint correspondence: its 206 operations form
+85 groups, of which the default report shows 50 and discloses the remainder.
+This is a known readability limit of faithful adjacency grouping; no rematching
+or unsupported paragraph-level claim was added to make the report look simpler.
+For this local case, rerun `compare` with `--issue-limit 85 --report new-report.md`
+to retain all group details. Ordinary output-file protection still applies.

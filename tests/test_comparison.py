@@ -112,7 +112,7 @@ class ComparisonTests(unittest.TestCase):
 
     def test_issue_limit_preserves_counts_and_escapes_evidence(self):
         report = cp.render_report(qr.PdfText("<img>.pdf", ("one keep two stay three",)), "keep stay", Path("test.md"), issue_limit=1)
-        self.assertIn("Showing 1 of 3; omitted 2", report)
+        self.assertIn("Showing 1 of 3 groups; omitted 2 groups", report)
         self.assertIn("Missing occurrences: 3", report)
         self.assertIn("&lt;img&gt;", report)
         self.assertNotIn("<img>", report)

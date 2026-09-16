@@ -13,7 +13,7 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after Milestone J.
+Current state after Milestone K.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -594,6 +594,31 @@ to be requested; sections 14-16 have not been implemented.
   exact source-offset strategy. Integrate at most one unless justified.
 - Update the comparison contract and both READMEs; focused/full tests and diff
   review are required. No new aggregate accuracy score or visual verification.
+
+## 14. Readable grouped differences (Milestone K)
+
+Completed (2026-09-16): same-kind adjacent operations now form bounded groups,
+ranked by operation count with stable alignment-order ties. Page and endpoint
+discontinuities split groups. `--issue-limit` limits groups; each displayed group
+retains complete occurrence details, bounded context and explicit omission
+counts. Missing text and suspected movement remain distinct. See the grouping
+contract in `docs/COMPARISON.md`. No alignment, metrics, dependency or conversion
+behavior changed. L is ready to be requested; L/M have not been implemented.
+Verification: 47 focused tests passed; full discovery reports 273 tests OK with
+seven opt-in skips. All selected pilot counts and input hashes remained unchanged.
+Grouped reports were inspected for the source-order/caption case; diff checks passed.
+
+- Group adjacent operations into readable excerpts without changing underlying
+  token counts or losing occurrence/page/line/span evidence.
+- Show larger affected spans first using a documented deterministic ranking;
+  call it size-based priority, not semantic importance or model confidence.
+- Keep missing content and suspected movement distinct; do not relabel a moved
+  passage as a verified loss. Preserve source order/location within each group.
+- Bound group/context display, disclose omitted groups and retain access to
+  occurrence details. Define how `--issue-limit` interacts with grouping.
+- Verify split-page passages, repeated text, mixed operations and stable tie
+  ordering. Revisit I's report-readability findings; update both READMEs and the
+  contract, run focused/full tests and inspect the diff.
 
 ## Deferred: merged-cell HTML tables
 
