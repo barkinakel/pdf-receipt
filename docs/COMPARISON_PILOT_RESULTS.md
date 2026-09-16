@@ -147,3 +147,16 @@ header-removal exemptions or visual-image accuracy claims should be added.
 
 See [integration assessment](COMPARISON_INTEGRATIONS.md) for concrete reuse
 options and the boundary between development benchmarks and runtime behavior.
+
+## J regression recheck
+
+The earlier observations above describe I's original implementation. J's final
+source-mapped parser was rechecked offline against all 12 acquired predictions
+and their references; acquisition hashes remained unchanged. Separate reports
+and counts are retained in the ignored pilot directory's `j-parser-recheck/`.
+Case 0001 now retains all 441 Markdown occurrences, with only the source's
+separate `UN` occurrence missing. The literal angle-bracket false loss is gone.
+Case 0008 retains the contextual moved joins as order risks; case 0180 still
+matches all 174 occurrences. Original regression tests also cover controlled
+duplication/removal, entities, code, reference images and precise raw positions.
+These checks do not close the pilot's visual or dataset coverage gaps.

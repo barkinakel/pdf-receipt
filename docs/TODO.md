@@ -13,7 +13,7 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after Milestone I.
+Current state after Milestone J.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -551,6 +551,49 @@ Completed (2026-09-16), within the approved selected-pilot scope:
   default behavior changed. Offline probes and diff checks ran; the full test
   suite was not repeated for documentation/evaluation-only work.
 - J is ready to be requested; no implementation in J-M started.
+
+## 13. Comparison reliability and broader Markdown support (Milestone J)
+
+Use I's cases to expand the direct comparator's visible-text and image parsing.
+
+Completed (2026-09-16): reproduced and fixed direct-comparison paragraph
+duplication and contextual moved-hyphen regressions. Adopted the approved
+`markdown-it-py>=4.2,<5` dependency with original character mapping, CommonMark
+plus pipe tables, reference images and HTML text/image handling. No package
+download was needed. Dialect limits are specified in `docs/COMPARISON.md` and
+both READMEs. Original regressions cover entities, nested syntax, literal code,
+source positions, image restrictions and malformed inputs. Existing two-stage
+conversion behavior remains unchanged. The selected pilot was rechecked offline
+with unchanged source hashes; no aggregate accuracy claim is made. Focused
+tests: 72 passed; full discovery: 264 OK with seven opt-in skips. K is ready
+to be requested; sections 14-16 have not been implemented.
+
+- First reproduce I's paragraph-duplication regression: additions must not
+  manufacture order risks in unchanged surrounding text. Fix independently of
+  parser adoption, preserving bounded operation and one-to-one identities.
+- Reproduce moved line-end-hyphen matching from I; distinguish a real content
+  omission from a preserved joined word in a reordered block. Do not relax
+  global occurrence accounting to make this case pass.
+- Specify the supported dialect before implementation: reference links/images,
+  escaped and nested inline syntax, HTML entities, inline/fenced code, and the
+  handling of HTML tables/images and math. Explicitly identify unsupported forms.
+- Preserve original Markdown offsets and raw evidence through decoding and
+  normalization, including entities that change character length.
+- Keep actual code content distinct from Markdown syntax inside code; do not
+  count hidden destinations, definitions or comments as visible prose.
+- Add reference-image resolution and preserve local-root restrictions, offline
+  behavior, unreadable-target diagnostics and no implied image-fidelity score.
+- Reproduce observed false alarms first; test equivalent rendered content,
+  genuine losses, location evidence and malformed inputs. Preserve globally
+  one-to-one accounting and existing conversion report behavior.
+- Assess existing dependency availability before choosing a parser. Any new
+  dependency requires explicit approval; do not grow ad-hoc regexes into an
+  undocumented full Markdown implementation.
+  Consult `docs/COMPARISON_INTEGRATIONS.md`; `markdown-it-py` and `marko` are
+  already present transitively, but direct adoption still needs a version and
+  exact source-offset strategy. Integrate at most one unless justified.
+- Update the comparison contract and both READMEs; focused/full tests and diff
+  review are required. No new aggregate accuracy score or visual verification.
 
 ## Deferred: merged-cell HTML tables
 

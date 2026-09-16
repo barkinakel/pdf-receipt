@@ -14,10 +14,44 @@ from pdf_receipt.quality_metrics import summarize_alignment
 
 
 class ComparisonTests(unittest.TestCase):
+    def test_long_paragraph_duplication_preserves_unchanged_order(self):
+        paragraph = " ".join(f"word{i}" for i in range(90))
+        following = " ".join(f"tail{i}" for i in range(100))
+        source = paragraph + " " + following
+        metrics = self.metrics([source], paragraph + " " + source)
+        self.assertEqual(metrics.unexpected_insertion_count, 90)
+        self.assertEqual(metrics.matched_source_count, 190)
+        self.assertEqual(metrics.order_risk_count, 0)
 
+    def test_moved_hyphenated_word_uses_context_and_consumes_once(self):
+        middle = " ".join(f"middle{i}" for i in range(90))
+        metrics = self.metrics(["before inter-\nnational after " + middle],
+                               middle + " before international after")
+        self.assertEqual(metrics.unexplained_deletion_count, 0)
+        self.assertEqual(metrics.unexpected_insertion_count, 0)
+        self.assertEqual(metrics.order_risk_count, 3)
 
+    def test_long_deletion_keeps_surviving_tokens_in_order(self):
+        prefix = " ".join(f"word{i}" for i in range(90))
+        suffix = " ".join(f"tail{i}" for i in range(100))
+        metrics = self.metrics([prefix + " " + suffix], suffix)
+        self.assertEqual(metrics.unexplained_deletion_count, 90)
+        self.assertEqual(metrics.matched_source_count, 100)
+        self.assertEqual(metrics.order_risk_count, 0)
 
+    def test_moved_hyphen_join_without_neighbor_evidence_is_not_accepted(self):
+        metrics = self.metrics(["start inter-\nnational finish"],
+                               "other international words start finish")
+        self.assertGreater(metrics.unexplained_loss_numerator, 0)
 
+    def test_moved_hyphen_occurrences_cannot_share_target(self):
+        middle = " ".join(f"middle{i}" for i in range(90))
+        metrics = self.metrics(["before inter-\nnational after",
+                                "before inter-\nnational after " + middle],
+                               middle + " before international after")
+        self.assertEqual(metrics.source_token_count - metrics.target_token_count, 3)
+        self.assertEqual(metrics.unexplained_deletion_count, 3)
+        self.assertEqual(metrics.order_risk_count, 3)
 
     def metrics(self, pages, markdown, profile="unicode"):
         result = cp.compare_text(qr.PdfText("source.pdf", tuple(pages), case_profile=profile), markdown)
@@ -97,6 +131,19 @@ class ComparisonTests(unittest.TestCase):
             self.assertIn("not checked", statuses[5])
             self.assertEqual(cp.image_checks("```md\n![sample](missing.png)\n```", root / "test.md"), [])
 
+    def test_reference_and_html_images_use_existing_local_checks(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            Image.new("RGB", (2, 2)).save(root / "a b.png")
+            markdown = ('![ok][]\n![missing]\n<img src="../outside.png">\n'
+                        '<img src="https://example.invalid/image.png">\n\n'
+                        '[ok]: a%20b.png\n[missing]: absent.png')
+            checks = cp.image_checks(markdown, root / "test.md")
+            self.assertEqual([c[0] for c in checks], [1, 2, 3, 4])
+            self.assertIn("decodable image", checks[0][2])
+            self.assertEqual(checks[1][2], "missing_local_target")
+            self.assertEqual(checks[2][2], "outside_output_root")
+            self.assertIn("not checked", checks[3][2])
 
     def test_cli_compares_real_pdf_without_runtime_and_preserves_files(self):
         source = Path(__file__).parent / "fixtures" / "formulas" / "formula_equations.pdf"

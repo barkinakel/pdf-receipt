@@ -334,7 +334,7 @@ converting again or requiring Docling JSON or models:
 Both inputs stay unchanged. The command creates a separate report and refuses
 an existing target. Without `--report`, it writes `<markdown-stem>_comparison.md`
 beside the Markdown. It reports text losses, additions, substitutions and order
-risks with page/line evidence, plus supported local inline image checks.
+risks with page/line evidence, plus local inline/reference and HTML image checks.
 Differences are a successful comparison; input/write errors return failure.
 
 PDF text is comparison evidence, not guaranteed truth. Pages without comparable
@@ -342,6 +342,18 @@ text remain unverified; no OCR or visual-fidelity verification is performed.
 Markdown dialect limitations and all options are documented in
 [the comparison guide](docs/COMPARISON.md) and `compare --help`.
 
+Comparison supports CommonMark with pipe tables through `markdown-it-py`.
+Reference links, nested formatting and HTML entities retain original source
+locations. Code stays literal; HTML tables provide text only and math is checked
+as lexical text. CSS, JavaScript and Markdown extensions such as footnotes are
+not interpreted.
+
 [Real-document evaluation](docs/COMPARISON_EVALUATION.md) continues; batch
 comparison remains [planned work](docs/TODO.md).
 Measurements are being re-taken.
+
+[Initial evaluation findings](docs/COMPARISON_PILOT_RESULTS.md) identified parser
+and alignment limitations. Pure paragraph duplication now preserves unchanged
+text order, and moved hyphenated words can match with neighboring evidence.
+The observed literal angle-bracket masking is fixed. Current reports still
+require inspection of the supporting evidence.

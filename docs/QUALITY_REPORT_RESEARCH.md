@@ -16,6 +16,11 @@ defects and explicit coverage gaps. See [integration assessment](COMPARISON_INTE
 for existing Markdown-parser candidates and isolated benchmark/metric reuse.
 No upstream evaluation package was added to the application.
 
+Milestone J fixes the confirmed duplication and moved-hyphen cases and adopts
+an approved source-mapped CommonMark parser for independent comparison. See
+[the dialect contract](COMPARISON.md); conversion's two-stage metrics remain
+unchanged. Parser improvements do not establish visual or OCR accuracy.
+
 ## Conclusion
 
 There is no mature, lightweight tool that can take an arbitrary PDF and its

@@ -746,8 +746,100 @@ def align_extraction(
     )
 
 
+def _subsequence_alignment(
+    source: Sequence[tuple[int, AlignableToken]],
+    target: Sequence[tuple[int, AlignableToken]],
+    source_evidence: Sequence[TokenEvidence],
+    target_evidence: Sequence[TokenEvidence],
+) -> list[AlignmentOperation] | None:
+    """Recognize pure additions/removals in linear time before bounded LCS.
+
+    A duplicated passage can hide the next anchor beyond the LCS window.
+    An exhaustive subsequence is stronger evidence than a local mismatch.
+    Only complete containment is accepted; mixed edits use the bounded fallback.
+    """
+    source_is_short = len(source) <= len(target)
+    short, long = (source, target) if source_is_short else (target, source)
+    pairs: list[tuple[int, int, tuple[MatchKind, tuple[HyphenDecision, ...]]]] = []
+    cursor = 0
+    for index in range(len(long)):
+        if cursor == len(short):
+            break
+        si, ti = (cursor, index) if source_is_short else (index, cursor)
+        match = _match_kind(source, target, si, ti)
+        if match is not None:
+            pairs.append((si, ti, match))
+            cursor += 1
+    if cursor != len(short):
+        return None
+    matched = {ti if source_is_short else si: (si, ti, match)
+               for si, ti, match in pairs}
+    operations = []
+    short_cursor = 0
+    for index in range(len(long)):
+        pair = matched.get(index)
+        if pair is not None:
+            si, ti, (kind, decisions) = pair
+            operation_type = OperationType.MATCH
+            source_item, target_item = source[si], target[ti]
+            short_cursor += 1
+        else:
+            si, ti = ((short_cursor, index) if source_is_short
+                      else (index, short_cursor))
+            operation_type = OperationType.INSERTION if source_is_short else OperationType.DELETION
+            source_item = None if source_is_short else source[si]
+            target_item = target[ti] if source_is_short else None
+            kind = MatchKind.ADDED if source_is_short else MatchKind.UNEXPLAINED
+            decisions = ()
+        operations.append(_operation(
+            stage=AlignmentStage.DIRECT, operation_type=operation_type,
+            source_item=source_item, target_item=target_item,
+            source_evidence=source_evidence, target_evidence=target_evidence,
+            source_gap=si, target_gap=ti, match_kind=kind,
+            hyphen_decisions=decisions,
+        ))
+    return operations
 
 
+def _recover_direct_hyphens(
+    operations: Sequence[AlignmentOperation],
+    source: Sequence[tuple[int, AlignableToken]],
+    target: Sequence[tuple[int, AlignableToken]],
+) -> list[AlignmentOperation]:
+    """Recover moved hyphen joins only with original neighboring evidence.
+
+    Candidate work is bounded per deletion. Exact matches were consumed first;
+    a recovered insertion can never explain another source occurrence.
+    """
+    candidates: dict[str, list[int]] = defaultdict(list)
+    for i, op in enumerate(operations):
+        if op.type == OperationType.INSERTION and op.target_token:
+            token = op.target_token
+            for key in {token.normalized_text, token.joined_normalized_text} - {None}:
+                candidates[key].append(i)
+    consumed: set[int] = set()
+    replacements: dict[int, AlignmentOperation] = {}
+    for i, op in enumerate(operations):
+        if op.type != OperationType.DELETION or op.source_token is None:
+            continue
+        token = op.source_token
+        keys = {token.normalized_text, token.joined_normalized_text} - {None}
+        indexes = sorted({j for key in keys for j in candidates.get(key, [])[:LOOKAHEAD_TOKENS]})
+        for j in indexes:
+            if j in consumed:
+                continue
+            partner = operations[j]
+            match = _match_kind(source, target, op.source_index, partner.target_index)
+            if match is None or match[0] != MatchKind.LINE_END_HYPHEN_JOIN:
+                continue
+            consumed.add(j)
+            replacements[i] = replace(
+                op, type=OperationType.ORDER_RISK, target_index=partner.target_index,
+                target_token=partner.target_token, target_context=partner.target_context,
+                match_kind=MatchKind.REORDERED, hyphen_decisions=match[1],
+            )
+            break
+    return [replacements.get(i, op) for i, op in enumerate(operations) if i not in consumed]
 
 
 def align_direct(
@@ -762,12 +854,15 @@ def align_direct(
     target = tuple(_snapshot(i, token) for i, token in enumerate(target_tokens))
     source_items = list(enumerate(source_tokens))
     target_items = list(enumerate(target_tokens))
-    operations = _align_partition(
-        source_items, target_items, stage=AlignmentStage.DIRECT,
-        source_evidence=source, target_evidence=target,
-    )
-    operations = _mark_order_risks(operations, AlignmentStage.DIRECT)
-    operations = _coalesce_substitutions(operations)
+    operations = _subsequence_alignment(source_items, target_items, source, target)
+    if operations is None:
+        operations = _align_partition(
+            source_items, target_items, stage=AlignmentStage.DIRECT,
+            source_evidence=source, target_evidence=target,
+        )
+        operations = _mark_order_risks(operations, AlignmentStage.DIRECT)
+        operations = _recover_direct_hyphens(operations, source_items, target_items)
+        operations = _coalesce_substitutions(operations)
     return AlignmentResult(AlignmentStage.DIRECT, source, target, tuple(operations), case_profile)
 
 

@@ -1,1 +1,2 @@
 docling==2.124.0
+markdown-it-py>=4.2,<5

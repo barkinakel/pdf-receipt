@@ -13,13 +13,14 @@ from . import alignment as al
 from . import quality_report as qr
 from . import structural_integrity as si
 from .quality_metrics import summarize_alignment
+from .markdown_evidence import parse_markdown
 
 
 def compare_text(pdf: qr.PdfText, markdown: str) -> al.AlignmentResult:
     """Keep global occurrence accounting and original page/source offsets."""
     return al.align_direct(
         qr.tokenize_pdf_pages(pdf),
-        qr.tokenize_markdown(markdown, case_profile=pdf.case_profile),
+        parse_markdown(markdown, case_profile=pdf.case_profile).tokens,
         case_profile=pdf.case_profile,
     )
 
@@ -27,7 +28,7 @@ def compare_text(pdf: qr.PdfText, markdown: str) -> al.AlignmentResult:
 def image_checks(markdown: str, markdown_path: Path) -> list[tuple[int, str, str]]:
     """Inspect Markdown/reference/HTML images without accessing remote targets."""
     checks = []
-    for image in si.parse_markdown(markdown).images:
+    for image in parse_markdown(markdown).images:
         status = "not checked (remote or unsupported target)"
         try:
             if si._target_kind(image.target) == "local":
@@ -133,11 +134,14 @@ def render_report(pdf: qr.PdfText, markdown: str, markdown_path: Path,
                   "- PDF context: " + _code(" ".join(t.raw_text for t in issue.source_context)),
                   "- Markdown context: " + _code(" ".join(t.raw_text for t in issue.target_context)), ""]
     lines += ["## Image references and Markdown limits", "",
-              "Inline Markdown image targets are checked, relative to the Markdown directory. "
+              "Inline/reference Markdown images and HTML img src targets are checked, relative to the Markdown directory. "
               "Remote targets are never fetched; paths outside that directory are not opened. "
               "A decodable file does not establish preservation of a PDF image.", "",
-              "The lightweight parser supports common Markdown syntax. Reference images, HTML, entities "
-              "and nested syntax may affect counts. Code content participates. See docs/COMPARISON.md.", ""]
+              "Text parsing uses CommonMark with pipe tables, reference links, nested formatting "
+              "and decoded entities, preserving original raw spans. Code content stays literal; "
+              "image alt text, destinations, definitions and HTML comments are excluded. HTML "
+              "tables contribute text only; math remains lexical text. CSS, JavaScript, extensions "
+              "such as footnotes, and image srcset are not interpreted. See docs/COMPARISON.md.", ""]
     checks = image_checks(markdown, markdown_path)
     lines.extend(f"- Line {line}: {_code(target)} — {_code(status)}" for line, target, status in checks)
     if not checks:
@@ -155,8 +159,8 @@ def _positive(value: str) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="pdf-receipt compare", description=(
         "Compare an existing PDF and UTF-8 Markdown from any producer, offline and without models. "
-        "Common headings, lists, pipe tables and inline links/images are supported. "
-        "Inline image targets are checked locally. "
+        "CommonMark and pipe tables are supported; HTML tables provide text, math stays lexical. "
+        "Inline/reference images and HTML img src are checked locally. "
         "Differences return exit 0; input/write errors return exit 1. Inputs are never modified."))
     parser.add_argument("pdf", type=Path)
     parser.add_argument("markdown", type=Path)

@@ -329,8 +329,8 @@ dönüştürmeden karşılaştırabilirsiniz. Docling JSON veya model gerekmez:
 İki girdi de değişmeden kalır. Komut ayrı bir rapor oluşturur; mevcut hedefin
 üzerine yazmaz. `--report` verilmezse Markdown'ın yanına
 `<markdown-stem>_comparison.md` yazar. Metin kayıplarını, eklemeleri, değişimleri
-ve sıra risklerini sayfa/satır kanıtıyla gösterir; desteklenen yerel satır içi
-görsel bağlantılarını da kontrol eder. Fark bulunması başarılı bir
+ve sıra risklerini sayfa/satır kanıtıyla gösterir; yerel satır içi, referanslı ve
+HTML görsel bağlantılarını da kontrol eder. Fark bulunması başarılı bir
 karşılaştırmadır; girdi/yazma hataları başarısızlık kodu döndürür.
 
 PDF metni karşılaştırma kanıtıdır, kesin doğru kabul edilmez. Karşılaştırılabilir
@@ -338,6 +338,18 @@ metni olmayan sayfalar doğrulanmamış kalır; OCR veya görsel doğruluk denet
 yapılmaz. Markdown biçimi sınırlamaları ve tüm seçenekler
 [karşılaştırma rehberinde](docs/COMPARISON.md) ve `compare --help` içinde açıklanır.
 
+Karşılaştırma, `markdown-it-py` üzerinden CommonMark ve dikey çizgili tabloları
+destekler. Referans bağlantıları, iç içe biçimlendirme ve HTML karakter kodları
+özgün kaynak konumlarını korur. Kod içeriği olduğu gibi ele alınır; HTML tabloları
+yalnızca metin sağlar, matematik ise metinsel tokenlarla denetlenir. CSS,
+JavaScript ve dipnot gibi Markdown uzantıları yorumlanmaz.
+
 [Gerçek belge değerlendirmesi](docs/COMPARISON_EVALUATION.md) sürüyor;
 toplu karşılaştırma [planlanan işler arasındadır](docs/TODO.md).
 Ölçümler yeniden yapılıyor.
+
+[İlk değerlendirmede](docs/COMPARISON_PILOT_RESULTS.md) ayrıştırma ve eşleştirme
+sınırlamaları bulundu. Yalnızca paragraf tekrarlanan durumlarda değişmeyen metnin
+sırası artık korunuyor; taşınmış, satır sonunda bölünmüş kelimeler komşu metin
+kanıtıyla eşleşebiliyor. Gözlenen açılı ayraç içindeki düz metnin kaybolması
+düzeltildi. Rapordaki bulguların dayandığı kanıtları incelemek hâlâ gerekiyor.

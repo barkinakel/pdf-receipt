@@ -34,8 +34,17 @@ reuse the existing evidence-preserving tokenizer. `unicode` is the default case
 profile; `turkic` uses Turkish casing. Punctuation and formatting are not
 scored as textual content.
 
-Direct alignment uses bounded ordered matching and globally one-to-one occurrences.
-The PDF text layer is evidence, not guaranteed ground truth.
+Direct alignment first checks complete ordered containment in linear time to
+identify pure additions/removals, including long repeated paragraphs. Mixed
+edits use bounded lookahead of 64 tokens. Every source and target
+occurrence is consumed exactly once across the whole document. Repetitions do not
+share a match. No figure, furniture, footnote or table-repetition exemption is
+inferred. Large rearrangements can appear as missing/added text; this is not an
+optimal semantic diff or an explanation of which conversion stage failed.
+Moved line-end-hyphen joins require neighboring evidence in the original token
+streams and consume a target occurrence only once. Candidate search is bounded;
+ambiguous or heavily repeated cases may remain unexplained. Recovered joins in
+moved text count as order risks, not accepted in-order transfer.
 
 The report separates accepted matches, missing occurrences, added occurrences
 (including surplus repetitions), substitutions and order risks. Substitutions
@@ -55,9 +64,37 @@ are explicitly unverified, whether scanned, blank or otherwise inaccessible.
 No OCR is run. Text-bearing pages can still contain unverified scanned regions.
 Reported rates describe the available text layer, never whole-document accuracy.
 
-The lightweight parser supports common headings, lists, pipe tables and inline links/images.
-Reference syntax, HTML, entities and nested formatting may affect counts. Inline local image
-references are resolved relative to the Markdown directory.
+### Supported Markdown dialect
+
+Independent comparison uses `markdown-it-py>=4.2,<5`: CommonMark with pipe tables.
+Headings, lists, blockquotes, nested emphasis, escapes, inline links and full,
+collapsed or shortcut reference links/images are parsed as syntax. Link labels
+participate; image alt text, destinations, titles and reference definitions do
+not. Undefined references remain literal text. HTML entities are decoded in
+prose, while inline, fenced and indented code stays literal, including Markdown
+examples within code. Fence language labels are excluded.
+
+HTML tables contribute cell text in source order, separated at cell boundaries;
+HTML `img src` joins the image inventory. Tags, attributes, comments and
+script/style/template/head content do not contribute prose. HTML is parsed
+without execution or rendering. CSS visibility, JavaScript, `srcset`, SVG image
+references and browser error recovery are unsupported. This is text evidence,
+not a browser-equivalence guarantee.
+
+Math has no extension or semantic evaluator: its literal textual tokens
+participate under the same punctuation rules as other prose. Footnotes,
+front matter, task lists and other Markdown extensions have no special handling;
+their syntax may contribute tokens. Tables, formulas, visual layout and image
+content are not compared structurally or visually.
+
+The adapter records original character positions during block and inline
+parsing. Decoded entities and formatted words retain their original raw spelling
+and half-open span, including intervening syntax. CRLF/CR normalization preserves
+file offsets and line evidence. A block whose positions cannot be preserved
+causes an explicit comparison failure instead of fabricated locations. The
+conversion command retains its existing Docling-specific tokenizer.
+
+Supported inline/reference/HTML image targets are resolved relative to the Markdown folder.
 Local files are checked for existence, readability, nonempty content and actual
 image decoding. Paths outside that folder, including resolved symlink escapes,
 are refused. Remote and unsupported targets are reported as unchecked and never
@@ -67,6 +104,7 @@ status and are separate from text counts.
 
 ## Verification
 
+`tests/test_markdown_evidence.py` covers the dialect and original source spans.
 `tests/test_comparison.py` covers occurrence accounting across pages, repetitions,
 loss/addition, substitutions, ordering, Unicode, empty evidence, Markdown syntax,
 location evidence, report truncation, image diagnostics and CLI file protection.
@@ -75,6 +113,6 @@ Markdown without creating a Docling runtime. These are deterministic offline
 regression checks, not a general accuracy benchmark.
 
 ```powershell
-.venv\Scripts\python.exe -m unittest tests.test_comparison
+.venv\Scripts\python.exe -m unittest tests.test_markdown_evidence tests.test_comparison
 .venv\Scripts\python.exe -m unittest discover -s tests -t .
 ```
