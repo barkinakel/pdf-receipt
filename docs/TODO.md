@@ -13,7 +13,7 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after Milestone H.
+Current state after Milestone I.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -493,6 +493,64 @@ Completed (2026-09-16):
   Final diff checks passed. Pending Milestone G work was preserved.
 - No dependency, download, conversion-default change or commit was introduced.
   Follow-up work is now ordered in sections 12-16; deferred table work remains deferred.
+
+## 12. Real-document comparison evaluation (Milestone I)
+
+Evaluate whether the existing comparison report finds useful differences and
+avoids misleading alarms before changing its parser or metrics. The protocol,
+source shortlist and case-review template are in `docs/COMPARISON_EVALUATION.md`.
+This milestone evaluates the comparator; it does not rank conversion tools.
+
+Scope and acceptance:
+
+- Assemble a small, fixed pilot of existing PDF/Markdown pairs. Include prose,
+  multiple columns, repeated headers/footnotes, tables, formulas, local images,
+  Turkish text and scans. Features may overlap; missing coverage stays explicit.
+- Include independently authored Markdown and, when obtainable with suitable
+  terms, pre-existing output from a producer other than Docling. Producer is
+  optional research metadata, never a runtime requirement or inferred fact.
+- Record dataset revision, source URL, sample ID, file hashes, page mapping,
+  text-layer availability, reference provenance and applicable data terms.
+  Do not mistake a repository's code license for its document licenses.
+- Prefer a small selected subset of public benchmark data; ask before downloads.
+  Keep external documents, predictions and private inputs out of Git in the
+  ignored `pdfmd_output/comparison_evaluation/` directory. Do not install a
+  benchmark runner or another converter in the application environment.
+- Review representative findings against PDF appearance and independently
+  specified facts. Label true content difference, parser artifact, source-layer
+  problem, intentional editorial change, or unresolved. Include known retained
+  and deliberately removed/repeated/moved facts to check missed detections too.
+- Keep controlled mutations separate from natural conversion failures. An
+  upstream reference is evidence for its annotated scope, not guaranteed full
+  document truth. Never promote the PDF text layer or another converter to truth.
+- Summarize reviewed findings, missed facts, uncovered categories and concrete
+  parser/report work items. Do not publish a global accuracy score from a small
+  selected pilot or compare our transfer rate with upstream leaderboard metrics.
+- Save reproducible commands, settings and sanitized evidence under `docs/`.
+  Retain all source files unchanged and confirm hashes after evaluation. Keep
+  measurements out of both READMEs. No application behavior changes in I.
+
+Completed (2026-09-16), within the approved selected-pilot scope:
+
+- Acquired and hash-verified 12 PDF/Marker Markdown pairs, corresponding
+  references and license metadata from a pinned OpenDataLoader revision. All
+  external content stays ignored; inputs remained unchanged after evaluation.
+- Produced offline reports and reviewed page images/reference evidence. Found
+  a confirmed Markdown masking false loss and misleading order flags caused
+  by source text order. Incomplete published image artifacts remain distinct
+  from proven conversion failures.
+- A controlled paragraph deletion and movement behaved as expected; duplication
+  correctly counted added tokens but spuriously flagged unchanged text as moved.
+  The failed invariant is retained, not weakened or presented as a passing test.
+- Results, reproduction and uncovered categories are in
+  `docs/COMPARISON_PILOT_RESULTS.md`. The sample does not validate Turkish,
+  natural scans, formulas, full image packages or long documents. No general
+  accuracy or upstream leaderboard claim is made.
+- Integration candidates and dependency boundaries are documented in
+  `docs/COMPARISON_INTEGRATIONS.md`. No product code, installed dependency or
+  default behavior changed. Offline probes and diff checks ran; the full test
+  suite was not repeated for documentation/evaluation-only work.
+- J is ready to be requested; no implementation in J-M started.
 
 ## Deferred: merged-cell HTML tables
 

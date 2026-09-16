@@ -337,3 +337,7 @@ PDF metni karşılaştırma kanıtıdır, kesin doğru kabul edilmez. Karşıla�
 metni olmayan sayfalar doğrulanmamış kalır; OCR veya görsel doğruluk denetimi
 yapılmaz. Markdown biçimi sınırlamaları ve tüm seçenekler
 [karşılaştırma rehberinde](docs/COMPARISON.md) ve `compare --help` içinde açıklanır.
+
+[Gerçek belge değerlendirmesi](docs/COMPARISON_EVALUATION.md) sürüyor;
+toplu karşılaştırma [planlanan işler arasındadır](docs/TODO.md).
+Ölçümler yeniden yapılıyor.

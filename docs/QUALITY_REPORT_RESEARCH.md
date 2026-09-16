@@ -2,6 +2,20 @@
 
 Research date: 2026-09-04
 
+Follow-up (2026-09-16): Milestone H now compares existing PDF/Markdown endpoints
+without an intermediate Docling document. Its text-layer evidence is distinct
+from an annotated benchmark. The current source shortlist, acquisition terms,
+pilot design and review protocol are in
+[Comparison evaluation](COMPARISON_EVALUATION.md). Milestone I evaluates false
+alarms and missed known facts before the parser/report changes in J-M. The
+original two-stage conversion-report recommendations below remain applicable.
+
+The approved selected-pair evaluation is now documented in
+[pilot results](COMPARISON_PILOT_RESULTS.md), with confirmed parser/alignment
+defects and explicit coverage gaps. See [integration assessment](COMPARISON_INTEGRATIONS.md)
+for existing Markdown-parser candidates and isolated benchmark/metric reuse.
+No upstream evaluation package was added to the application.
+
 ## Conclusion
 
 There is no mature, lightweight tool that can take an arbitrary PDF and its

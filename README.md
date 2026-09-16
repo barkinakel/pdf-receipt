@@ -341,3 +341,7 @@ PDF text is comparison evidence, not guaranteed truth. Pages without comparable
 text remain unverified; no OCR or visual-fidelity verification is performed.
 Markdown dialect limitations and all options are documented in
 [the comparison guide](docs/COMPARISON.md) and `compare --help`.
+
+[Real-document evaluation](docs/COMPARISON_EVALUATION.md) continues; batch
+comparison remains [planned work](docs/TODO.md).
+Measurements are being re-taken.
