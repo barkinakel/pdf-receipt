@@ -771,6 +771,26 @@ the occurrence correctly. Textless source evidence remained unverified. No new
 product regression or dependency was justified. The bounded evaluation is done;
 additional coverage or implementation needs a separately requested scope.
 
+The user subsequently requested continued research on the missing categories.
+The research first pinned OCRTurk and a historical scanned-booklet benchmark;
+the acquisition ceiling stayed unchanged. The resulting evaluations are below.
+
+Follow-up result: OCRTurk `data_14` now adds one reviewed natural Turkish pair
+with all four referenced images. Six selected text facts passed under `turkic`;
+image files decode, while visual/math correctness remains outside the metric.
+This brought the selection to six pairs including the synthetic OCR control.
+The water-department scan candidate was not acquired because its source terms
+and exact page correspondence remained unresolved. No product code or new
+dependency was needed. See the Turkish follow-up section in the coverage report.
+
+Natural-scan follow-up: evaluated the 1878 Gettysburg booklet with its existing
+archival OCR text copied byte-for-byte to a Markdown extension. Four of eight
+independently selected source/target facts failed because both endpoints share
+two OCR errors; endpoint agreement is not OCR accuracy. Seven cumulative pairs
+remain below the approved ceiling. The source has an OCR layer, so natural scans
+without text and broader scan diversity remain gaps. No product change was
+justified; see the natural-scan section of the coverage report.
+
 ## Integration queue after the current comparison milestones
 
 This queue records justified candidates; it does not start another milestone

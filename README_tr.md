@@ -377,8 +377,10 @@ raporlar. Bu, seçilmiş bulguların testidir; belge doğruluk puanı değildir.
 Sıra kontrolleri, örtüşen tekrarlar dahil belirsiz tekrarlı eşleşmeleri reddeder.
 
 [Ek belge incelemesi](docs/COMPARISON_COVERAGE_RESULTS.md), doğrulanmış eksikleri
-ve kaynak metin sınırlamalarını kaydeder. Gerçek Türkçe belgeler, taramalar ve
-eksiksiz görsel paketleri için kapsamın hâlâ genişletilmesi gerekiyor.
+ve kaynak metin sınırlamalarını kaydeder; bağlantılı görselleriyle birlikte bir
+Türkçe belgeyi ve mevcut OCR metniyle tarihî bir taramayı da kapsar. Tarama örneği,
+iki tarafta aynı OCR hatasının bulunabileceğini gösterir. Daha geniş Türkçe belge
+ve tarama kapsamı hâlâ açıktır.
 
 [İlk değerlendirmede](docs/COMPARISON_PILOT_RESULTS.md) ayrıştırma ve eşleştirme
 sınırlamaları bulundu. Yalnızca paragraf tekrarlanan durumlarda değişmeyen metnin

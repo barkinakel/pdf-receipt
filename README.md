@@ -380,8 +380,10 @@ This is selected-fact testing, not a document accuracy score.
 Ordering checks reject ambiguous repeated anchors, including overlapping ones.
 
 [Supplementary document review](docs/COMPARISON_COVERAGE_RESULTS.md) records
-confirmed omissions and source-text limitations. Natural Turkish documents,
-scans and complete image packages still need broader coverage.
+confirmed omissions and source-text limitations, including a Turkish document
+with its referenced images and a historical scan with existing OCR text. The
+scan demonstrates that both endpoints can share the same OCR error. Broader
+Turkish and scan coverage remains open.
 
 [Initial evaluation findings](docs/COMPARISON_PILOT_RESULTS.md) identified parser
 and alignment limitations. Pure paragraph duplication now preserves unchanged
