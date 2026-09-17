@@ -175,3 +175,19 @@ This is a known readability limit of faithful adjacency grouping; no rematching
 or unsupported paragraph-level claim was added to make the report look simpler.
 For this local case, rerun `compare` with `--issue-limit 85 --report new-report.md`
 to retain all group details. Ordinary output-file protection still applies.
+
+## N fact adapter check
+
+The already-local 0180 natural prediction and three controlled variants were
+evaluated with explicit opening-sequence counts, ordering and source-span
+operation expectations. Ten facts passed across four cases; both endpoint
+hashes were verified before and after each comparison. Input terms and the
+pinned acquisition revision remain recorded in the ignored `n-facts.json`.
+The final report is `n-evaluation-final.json` beside that manifest.
+
+These facts are locally authored from the reviewed pilot controls, not imported
+upstream annotations. IDs use a `local:` prefix to preserve that distinction.
+No source prose was copied into Git, new corpus downloaded, or aggregate accuracy
+claim made. The original checked-in adapter controls can run on a fresh clone;
+the external pilot still requires the previously acquired local files. See
+[the adapter contract](COMPARISON_ADAPTER.md) for reproduction and limitations.

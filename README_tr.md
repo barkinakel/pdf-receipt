@@ -357,9 +357,24 @@ ham metni ve kaynak konumlarını incelemek için grubun kelime bazındaki ayrı
 açabilirsiniz. Alıntılar sınırlıdır ve gösterilmeyenler belirtilir; sayımlar tüm
 belgeyi kapsar. Sıralama büyüklüğü gösterir, anlamsal önemi veya güven düzeyini değil.
 
-[Gerçek belge değerlendirmesi](docs/COMPARISON_EVALUATION.md) sürüyor;
-toplu karşılaştırma [planlanan işler arasındadır](docs/TODO.md).
+PDF/Markdown çiftlerini açıkça belirten bir liste için:
+
+```powershell
+.\pdf-receipt.bat compare-batch pairs.json --output-dir comparison-results
+```
+
+Çıktı klasörü önceden bulunmalıdır. Çiftlerin yolları liste dosyasına göre çözülür;
+her çift için Markdown/JSON raporları, ardından toplu özetler üretilir. Hatalı bir
+çift bağımsız çiftleri durdurmaz; mevcut çıktılar değiştirilmez.
+[Liste biçimi ve hata kuralları](docs/COMPARISON_BATCH.md) rehberde açıklanır.
+[Gerçek belge değerlendirmesi](docs/COMPARISON_EVALUATION.md) sürüyor.
 Ölçümler yeniden yapılıyor.
+
+Geliştirme sırasında regresyon kontrolü için [çevrimdışı olgu adaptörü](docs/COMPARISON_ADAPTER.md),
+hash değerleri doğrulanmış yerel çiftlerde açıkça yazılmış beklentileri denetler.
+Özgün kontrol örnekleri içerir; karşılanmayan beklentileri girdi hatalarından ayrı
+raporlar. Bu, seçilmiş bulguların testidir; belge doğruluk puanı değildir.
+Sıra kontrolleri, örtüşen tekrarlar dahil belirsiz tekrarlı eşleşmeleri reddeder.
 
 [İlk değerlendirmede](docs/COMPARISON_PILOT_RESULTS.md) ayrıştırma ve eşleştirme
 sınırlamaları bulundu. Yalnızca paragraf tekrarlanan durumlarda değişmeyen metnin

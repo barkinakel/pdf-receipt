@@ -373,6 +373,12 @@ See [the pair-list format and failure rules](docs/COMPARISON_BATCH.md).
 [Real-document evaluation](docs/COMPARISON_EVALUATION.md) continues.
 Measurements are being re-taken.
 
+For development regression checks, the [offline fact adapter](docs/COMPARISON_ADAPTER.md)
+evaluates explicit expectations against hash-verified local pairs. It includes
+original controls and reports failed expectations separately from input errors.
+This is selected-fact testing, not a document accuracy score.
+Ordering checks reject ambiguous repeated anchors, including overlapping ones.
+
 [Initial evaluation findings](docs/COMPARISON_PILOT_RESULTS.md) identified parser
 and alignment limitations. Pure paragraph duplication now preserves unchanged
 text order, and moved hyphenated words can match with neighboring evidence.

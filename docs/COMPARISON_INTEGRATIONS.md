@@ -82,8 +82,9 @@ replace our occurrence accounting, evidence locations or unverified-page policy.
 - Automatic benchmark downloads, model setup or dependency installation when
   running the CLI or ordinary tests.
 
-The completed parser gate is described below. The next implementation milestone
-is K; larger evaluators remain conditional research.
+The completed parser gate is described below. Milestones K-M are complete;
+larger evaluators remain conditional research. The approved local fact adapter
+is documented in [Milestone N](COMPARISON_ADAPTER.md).
 
 ## Queue decision during J
 

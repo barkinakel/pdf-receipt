@@ -1,0 +1,230 @@
+{
+  "schema_version": "1.0",
+  "case_profile": "unicode",
+  "cases": [
+    {
+      "id": "retained",
+      "dataset": "Original repository fixtures",
+      "revision": "1",
+      "sample_id": "formula-heading-retained",
+      "terms": "MIT; original repository material",
+      "provenance": "Manually specified title retention, duplication, deletion and movement controls; not a full transcription.",
+      "category": "controlled",
+      "pdf": {
+        "path": "../formulas/formula_equations.pdf",
+        "sha256": "4966e1168b9a685ddfbc5e6329576fc25abd4082a91fcbf52b116b3a4a800c43"
+      },
+      "markdown": {
+        "path": "retained.md",
+        "sha256": "18940f96c8757ae8bdff7ba9f8a6888d2947dd103a49efde66d0a2ccbb9b6755"
+      },
+      "facts": [
+        {
+          "basis": "independent",
+          "provenance": "Original authored Markdown and the original formula fixture heading.",
+          "side": "target",
+          "page": null,
+          "id": "heading-count",
+          "kind": "sequence_count",
+          "tokens": [
+            "formula",
+            "conversion",
+            "fixture"
+          ],
+          "count": 1
+        },
+        {
+          "id": "heading-operation",
+          "kind": "operation_span",
+          "basis": "regression",
+          "provenance": "Expected heading operation for this controlled edit; PDF title occupies raw span [0,26).",
+          "side": "source",
+          "page": 1,
+          "span": [
+            0,
+            26
+          ],
+          "operation": "match",
+          "count": 3
+        },
+        {
+          "basis": "independent",
+          "provenance": "Original authored Markdown and the original formula fixture heading.",
+          "side": "target",
+          "page": null,
+          "id": "heading-order",
+          "kind": "sequence_order",
+          "before": [
+            "formula",
+            "conversion",
+            "fixture"
+          ],
+          "after": [
+            "the",
+            "first",
+            "equation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deleted",
+      "dataset": "Original repository fixtures",
+      "revision": "1",
+      "sample_id": "formula-heading-deleted",
+      "terms": "MIT; original repository material",
+      "provenance": "Manually specified title retention, duplication, deletion and movement controls; not a full transcription.",
+      "category": "controlled",
+      "pdf": {
+        "path": "../formulas/formula_equations.pdf",
+        "sha256": "4966e1168b9a685ddfbc5e6329576fc25abd4082a91fcbf52b116b3a4a800c43"
+      },
+      "markdown": {
+        "path": "deleted.md",
+        "sha256": "66125ea6395e2127fb731c316c05cc72b62bf55634522febde3b08b70c39ca19"
+      },
+      "facts": [
+        {
+          "basis": "independent",
+          "provenance": "Original authored Markdown and the original formula fixture heading.",
+          "side": "target",
+          "page": null,
+          "id": "heading-count",
+          "kind": "sequence_count",
+          "tokens": [
+            "formula",
+            "conversion",
+            "fixture"
+          ],
+          "count": 0
+        },
+        {
+          "id": "heading-operation",
+          "kind": "operation_span",
+          "basis": "regression",
+          "provenance": "Expected heading operation for this controlled edit; PDF title occupies raw span [0,26).",
+          "side": "source",
+          "page": 1,
+          "span": [
+            0,
+            26
+          ],
+          "operation": "deletion",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "id": "repeated",
+      "dataset": "Original repository fixtures",
+      "revision": "1",
+      "sample_id": "formula-heading-repeated",
+      "terms": "MIT; original repository material",
+      "provenance": "Manually specified title retention, duplication, deletion and movement controls; not a full transcription.",
+      "category": "controlled",
+      "pdf": {
+        "path": "../formulas/formula_equations.pdf",
+        "sha256": "4966e1168b9a685ddfbc5e6329576fc25abd4082a91fcbf52b116b3a4a800c43"
+      },
+      "markdown": {
+        "path": "repeated.md",
+        "sha256": "9ab6a2cf7b0e19b2db9f97be419e193f6552c5e30586cb937c4a82209278bd7c"
+      },
+      "facts": [
+        {
+          "basis": "independent",
+          "provenance": "Original authored Markdown and the original formula fixture heading.",
+          "side": "target",
+          "page": null,
+          "id": "heading-count",
+          "kind": "sequence_count",
+          "tokens": [
+            "formula",
+            "conversion",
+            "fixture"
+          ],
+          "count": 2
+        },
+        {
+          "id": "heading-operation",
+          "kind": "operation_span",
+          "basis": "regression",
+          "provenance": "Expected heading operation for this controlled edit; PDF title occupies raw span [0,26).",
+          "side": "source",
+          "page": 1,
+          "span": [
+            0,
+            26
+          ],
+          "operation": "match",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "id": "moved",
+      "dataset": "Original repository fixtures",
+      "revision": "1",
+      "sample_id": "formula-heading-moved",
+      "terms": "MIT; original repository material",
+      "provenance": "Manually specified title retention, duplication, deletion and movement controls; not a full transcription.",
+      "category": "controlled",
+      "pdf": {
+        "path": "../formulas/formula_equations.pdf",
+        "sha256": "4966e1168b9a685ddfbc5e6329576fc25abd4082a91fcbf52b116b3a4a800c43"
+      },
+      "markdown": {
+        "path": "moved.md",
+        "sha256": "719ba169d5e5cb4d3316e81f355878486c8e7ed9a8fc283ce2f74449a7921c7c"
+      },
+      "facts": [
+        {
+          "basis": "independent",
+          "provenance": "Original authored Markdown and the original formula fixture heading.",
+          "side": "target",
+          "page": null,
+          "id": "heading-count",
+          "kind": "sequence_count",
+          "tokens": [
+            "formula",
+            "conversion",
+            "fixture"
+          ],
+          "count": 1
+        },
+        {
+          "id": "heading-operation",
+          "kind": "operation_span",
+          "basis": "regression",
+          "provenance": "Expected heading operation for this controlled edit; PDF title occupies raw span [0,26).",
+          "side": "source",
+          "page": 1,
+          "span": [
+            0,
+            26
+          ],
+          "operation": "order_risk",
+          "count": 3
+        },
+        {
+          "basis": "independent",
+          "provenance": "Original authored Markdown and the original formula fixture heading.",
+          "side": "target",
+          "page": null,
+          "id": "heading-order",
+          "kind": "sequence_order",
+          "before": [
+            "the",
+            "first",
+            "equation"
+          ],
+          "after": [
+            "formula",
+            "conversion",
+            "fixture"
+          ]
+        }
+      ]
+    }
+  ]
+}

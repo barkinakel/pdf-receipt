@@ -1,1 +1,2 @@
 *.pdf binary
+tests/fixtures/comparison_evaluation/*.md text eol=lf

@@ -13,8 +13,8 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after the completed structured-comparison milestone L.
-The next milestone M adds explicit batch comparison.
+Current state after the completed offline evaluation adapter milestone N.
+The integration queue below records potential follow-up work, not an active milestone.
 
 | Milestone | Sections | State |
 |---|---|---|
@@ -31,7 +31,8 @@ The next milestone M adds explicit batch comparison.
 | J: comparison reliability and Markdown support | 13 | done |
 | K: readable grouped differences | 14 | done |
 | L: structured comparison JSON | 15 | done |
-| M: batch comparison | 16 | planned |
+| M: batch comparison | 16 | done |
+| N: offline comparison evaluation adapter | 17 | done |
 
 Landed for sections 1-7:
 
@@ -660,6 +661,17 @@ unchanged. Final diff checks and the cumulative review are documented in
 
 ## 16. Batch comparison (Milestone M)
 
+Completed (2026-09-16): `compare-batch` reads strict versioned explicit pair lists,
+resolves paths relative to the list, preflights all planned output collisions,
+and isolates missing/invalid inputs and pair execution failures. Sequential
+processing reuses single-comparison renderers and exclusive writes. Pair Markdown
+and JSON reports plus both batch summaries distinguish execution failure from
+differences and unverified pages. No models, network access or dependencies were
+added. See `docs/COMPARISON_BATCH.md` for schema and partial-success semantics.
+Focused tests: 37 passed; full discovery: 293 tests OK with seven opt-in skips.
+The 12 acquired pilot pairs produced JSON identical to saved single-comparison
+results, with unchanged input hashes. No integration-queue work was started.
+
 - Follow L with explicit PDF/Markdown pair-list input; define a versioned format
   and relative-path base. Do not guess pairing from ambiguous basenames.
 - Detect duplicate pairs, missing inputs and report-name collisions before
@@ -674,6 +686,46 @@ unchanged. Final diff checks and the cumulative review are documented in
   Windows paths. Document commands in both READMEs and the comparison contract;
   run focused/full tests and inspect the diff.
 
+## 17. Offline comparison evaluation adapter (Milestone N)
+
+Implement the requested development-only adapter without extending the product CLI.
+
+Completed (2026-09-16): added `development/evaluate_comparison.py`, strict
+manifest/fact semantics, pre/post SHA-256 verification, complete structured
+comparison evidence, preserved IDs/provenance, and explicit pass/fail/error
+reports with exclusive output creation. Original pinned controls cover retained,
+deleted, repeated and moved content. The existing local pilot 0180 and its three
+controlled variants passed ten reviewed facts; this is not an accuracy score.
+Eleven adapter tests and 29 focused adapter/JSON/batch tests passed; full discovery
+reports 304 tests OK with seven opt-in skips. Python 3.10 syntax and diff checks
+passed. No network, model or dependency changes occurred. Pending M work was
+preserved; wider corpus acquisition and upstream evaluators remain unstarted.
+
+Follow-up review (2026-09-17): fixed overlapping repeated ordering anchors being
+mistaken for a unique anchor. Original source/target regression cases failed
+before the fix; count facts retain disjoint semantics. Twelve focused adapter
+tests and full discovery (305 tests OK, seven opt-in skips) passed.
+
+- Read a versioned local manifest of explicit PDF/Markdown pairs, SHA-256 hashes,
+  dataset revision, sample ID, provenance and document terms. Preserve fact IDs
+  and reference provenance; do not infer upstream annotation semantics.
+- Verify inputs before and after comparison. Hash mismatch or unavailable inputs
+  are evaluation errors, not passed/failed content facts. Keep external material
+  in ignored storage and introduce no downloads, models or dependencies.
+- Reuse the structured comparison result and its complete occurrences. Support
+  explicitly specified normalized token-sequence counts, unambiguous sequence
+  ordering and expected operation types over exact source/target character spans.
+  Keep source page mapping explicit. Unknown or ambiguous facts must fail visibly.
+- Report per-fact pass/fail/error with observed evidence, IDs, provenance and
+  settings. Separate natural pairs from controlled mutations and regression
+  expectations from independent reference facts. No global accuracy score.
+- Provide original redistributable fixtures for retained/deleted/repeated/moved
+  text and failed expectations. Exercise the already-acquired local pilot with
+  reviewed facts; do not copy external prose into Git or bless current output
+  automatically as reference truth.
+- Preserve existing outputs through exclusive creation; document reproducible
+  commands, schema, limitations, focused/full tests and the pilot result.
+
 ## Integration queue after the current comparison milestones
 
 This queue records justified candidates; it does not start another milestone
@@ -681,17 +733,17 @@ or authorize package/corpus downloads. See `docs/COMPARISON_INTEGRATIONS.md`.
 
 1. **Completed within J:** adopted one source-mapped Markdown parser after
    direct-dependency approval and the source-offset regression gate.
-2. **After L/M:** a development-only adapter for already acquired, hash-verified
-   endpoint pairs and explicit reference facts. Reuse structured comparison
-   results, preserve upstream fact IDs and dataset terms, and run offline.
-   Start with the available corpus; additional datasets need separate approval.
+2. **Completed in N:** a development-only adapter for already acquired,
+   hash-verified endpoint pairs and explicit reference facts. It reuses structured
+   results and preserves supplied IDs and terms. Additional datasets and new
+   upstream fact semantics need separate scope and acquisition approval.
 3. **Conditional research:** isolate `docling-eval` or selected `docling-metrics`
    components only when an independent table/text reference and a need for
    upstream-comparable scores exist. Prove Windows/offline installation first.
    Do not add a second converter, remote judge or default benchmark downloads.
 
-The next implementation milestone is M after L; these candidates do not
-replace or implicitly broaden sections 14-16.
+Milestones K-N are complete. Remaining candidates require a separately requested
+implementation scope; they do not start automatically.
 
 ## Deferred: merged-cell HTML tables
 
@@ -722,6 +774,7 @@ the entire open-ended backlog:
 11. Milestone K: readable grouped differences (section 14)
 12. Milestone L: structured comparison JSON (section 15)
 13. Milestone M: batch comparison (section 16)
+14. Milestone N: offline fact evaluation adapter (section 17)
 
 Within each run, the agent should inspect the relevant code first, add failing
 tests for the contract, implement the smallest cohesive change, run focused and
