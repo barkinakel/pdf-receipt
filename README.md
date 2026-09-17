@@ -360,8 +360,17 @@ expand each group's occurrence details to inspect raw text and source positions.
 Excerpts are bounded and omissions are disclosed; counts cover the full document.
 The ordering reflects size, not semantic importance or confidence.
 
-[Real-document evaluation](docs/COMPARISON_EVALUATION.md) continues; batch
-comparison remains [planned work](docs/TODO.md).
+For an explicit list of PDF/Markdown pairs, use:
+
+```powershell
+.\pdf-receipt.bat compare-batch pairs.json --output-dir comparison-results
+```
+
+The output directory must exist. Pair paths are relative to the list file;
+each pair produces Markdown/JSON reports, followed by batch summaries. Failed
+pairs do not stop independent pairs, and existing outputs are never replaced.
+See [the pair-list format and failure rules](docs/COMPARISON_BATCH.md).
+[Real-document evaluation](docs/COMPARISON_EVALUATION.md) continues.
 Measurements are being re-taken.
 
 [Initial evaluation findings](docs/COMPARISON_PILOT_RESULTS.md) identified parser

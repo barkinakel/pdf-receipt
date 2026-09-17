@@ -43,4 +43,5 @@ meaning and table structure remain unverified. Complex rearrangements can still
 produce fragmented groups, as recorded in the pilot review. The parser adapter
 depends on the declared major version's rule interfaces and requires regression
 checks before an upgrade. JSON retains all occurrence evidence in memory and can
-be large; it is not a streaming export. M (batch comparison) remains unimplemented.
+be large; it is not a streaming export. M was unimplemented at this review;
+its subsequent implementation and verification are recorded in `TODO.md`.

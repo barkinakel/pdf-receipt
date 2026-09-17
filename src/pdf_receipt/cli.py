@@ -41,7 +41,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="pdf-receipt",
         description="Converts one or more PDF files to Markdown and JSON.",
-        epilog="Compare existing files without conversion: pdf-receipt compare PDF MARKDOWN --help",
+        epilog="Compare existing files: pdf-receipt compare PDF MARKDOWN --help; explicit pairs: pdf-receipt compare-batch --help",
     )
     parser.add_argument(
         "pdfs",
@@ -256,6 +256,10 @@ def _open_when_done(
 def main(argv: list[str] | None = None) -> int:
     configure_console()
     arguments = list(argv) if argv is not None else sys.argv[1:]
+    if arguments and arguments[0] == "compare-batch":
+        from .comparison_batch import main as batch_main
+
+        return batch_main(arguments[1:])
     if arguments and arguments[0] == "compare":
         from .comparison import main as compare_main
 

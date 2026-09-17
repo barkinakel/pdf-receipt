@@ -1,8 +1,8 @@
 # Independent PDF-to-Markdown comparison
 
 Development follow-up: [the evaluation protocol](COMPARISON_EVALUATION.md)
-defines real-document sampling and review. Batch comparison remains planned in
-[TODO section 16](TODO.md). Optional JSON output has a
+defines real-document sampling and review. Explicit pair-list batches are
+documented in [the batch guide](COMPARISON_BATCH.md). Optional JSON output has a
 [versioned contract](COMPARISON_JSON.md).
 The [first real-document pilot](COMPARISON_PILOT_RESULTS.md) found parser and
 alignment limitations. J's alignment fix now handles pure paragraph duplication

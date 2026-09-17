@@ -230,6 +230,48 @@ def _positive(value: str) -> int:
     return number
 
 
+def validate_inputs(pdf_path: Path, markdown_path: Path) -> None:
+    if pdf_path.suffix.lower() != ".pdf" or not si._long_path(pdf_path).is_file():
+        raise ValueError("PDF input must be an existing .pdf file")
+    if markdown_path.suffix.lower() not in {".md", ".markdown"} or not si._long_path(markdown_path).is_file():
+        raise ValueError("Markdown input must be an existing .md or .markdown file")
+
+
+def read_comparison(pdf_path: Path, markdown_path: Path, *, case_profile: qr.CaseProfile = "unicode",
+                    issue_limit: int = 50) -> ComparisonResult:
+    validate_inputs(pdf_path, markdown_path)
+    with si._long_path(markdown_path).open(encoding="utf-8-sig", newline="") as handle:
+        markdown = handle.read()
+    pdf = qr.read_pdf_text(si._long_path(pdf_path), case_profile=case_profile)
+    return build_comparison(pdf, markdown, markdown_path, issue_limit=issue_limit)
+
+
+@dataclass(frozen=True)
+class ReportWrite:
+    kind: str
+    path: Path
+    error: str | None
+
+
+def write_reports(outputs: list[tuple[str, Path]], reports: list[str]) -> tuple[ReportWrite, ...]:
+    """Attempt each exclusive write independently, preserving partial successes."""
+    if len(outputs) != len(reports):
+        raise ValueError("Every report target must have rendered content")
+    results = []
+    for (kind, path), report in zip(outputs, reports):
+        try:
+            with si._long_path(path).open("x", encoding="utf-8", newline="\n") as handle:
+                handle.write(report)
+            label = "Comparison report" if kind == "Markdown" else f"Comparison {kind} report"
+            print(f"{label}: {path}")
+            results.append(ReportWrite(kind, path, None))
+        except Exception as exc:
+            results.append(ReportWrite(kind, path, str(exc)))
+            print(f"Comparison {kind} report failed: {path}: {exc}. "
+                  "Other completed outputs are retained; a partial file may remain at this path.", file=sys.stderr)
+    return tuple(results)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="pdf-receipt compare", description=(
         "Compare an existing PDF and UTF-8 Markdown from any producer, offline and without models. "
@@ -246,10 +288,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         pdf_path = args.pdf.expanduser().resolve()
         markdown_path = args.markdown.expanduser().resolve()
-        if pdf_path.suffix.lower() != ".pdf" or not si._long_path(pdf_path).is_file():
-            raise ValueError("PDF input must be an existing .pdf file")
-        if markdown_path.suffix.lower() not in {".md", ".markdown"} or not si._long_path(markdown_path).is_file():
-            raise ValueError("Markdown input must be an existing .md or .markdown file")
+        validate_inputs(pdf_path, markdown_path)
         output = (args.report.expanduser() if args.report else
                   markdown_path.with_name(markdown_path.stem + "_comparison.md")).absolute()
         outputs = [("Markdown", output)]
@@ -262,26 +301,13 @@ def main(argv: list[str] | None = None) -> int:
             if not si._long_path(path.parent).is_dir():
                 raise FileNotFoundError(f"Report parent directory does not exist: {path.parent}")
             resolved.add(path.resolve())
-        with si._long_path(markdown_path).open(encoding="utf-8-sig", newline="") as handle:
-            markdown = handle.read()
-        pdf = qr.read_pdf_text(si._long_path(pdf_path), case_profile=args.case_profile)
-        comparison = build_comparison(pdf, markdown, markdown_path, issue_limit=args.issue_limit)
+        comparison = read_comparison(pdf_path, markdown_path, case_profile=args.case_profile, issue_limit=args.issue_limit)
         reports = [render_markdown(comparison)]
         if args.json_report is not None:
             from .comparison_json import render_json
             reports.append(render_json(comparison))
-        failed = False
-        for (kind, path), report in zip(outputs, reports):
-            try:
-                with si._long_path(path).open("x", encoding="utf-8", newline="\n") as handle:
-                    handle.write(report)
-                label = "Comparison report" if kind == "Markdown" else "Comparison JSON report"
-                print(f"{label}: {path}")
-            except Exception as exc:
-                failed = True
-                print(f"Comparison {kind} report failed: {path}: {exc}. "
-                      "Other completed outputs are retained; a partial file may remain at this path.", file=sys.stderr)
-        return 1 if failed else 0
+        written = write_reports(outputs, reports)
+        return 1 if any(item.error is not None for item in written) else 0
     except Exception as exc:
         print(f"Comparison failed: {exc}", file=sys.stderr)
         return 1
