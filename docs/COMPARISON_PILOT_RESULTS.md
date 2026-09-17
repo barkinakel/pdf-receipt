@@ -1,5 +1,9 @@
 # Independent comparison: first real-document pilot
 
+Follow-up: [Milestone O coverage results](COMPARISON_COVERAGE_RESULTS.md)
+record supplementary multi-page, formula and diagram examples, separately from
+this original pilot and its controlled edits. Remaining coverage gaps are explicit.
+
 Date: 2026-09-16. Milestone I evaluation is complete for the selected pilot;
 this is not a complete benchmark or a claim of general accuracy. No comparator
 behavior was changed. Known defects below remain open for the next work item.

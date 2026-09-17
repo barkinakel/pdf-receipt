@@ -379,6 +379,10 @@ original controls and reports failed expectations separately from input errors.
 This is selected-fact testing, not a document accuracy score.
 Ordering checks reject ambiguous repeated anchors, including overlapping ones.
 
+[Supplementary document review](docs/COMPARISON_COVERAGE_RESULTS.md) records
+confirmed omissions and source-text limitations. Natural Turkish documents,
+scans and complete image packages still need broader coverage.
+
 [Initial evaluation findings](docs/COMPARISON_PILOT_RESULTS.md) identified parser
 and alignment limitations. Pure paragraph duplication now preserves unchanged
 text order, and moved hyphenated words can match with neighboring evidence.

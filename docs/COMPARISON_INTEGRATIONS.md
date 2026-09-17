@@ -5,6 +5,11 @@ explicit direct-dependency approval. Other entries remain recommendations. The a
 benchmark download did not authorize package/model installation or a new
 conversion engine. See [pilot evidence](COMPARISON_PILOT_RESULTS.md).
 
+Milestone O's [supplementary evaluation](COMPARISON_COVERAGE_RESULTS.md) used the
+existing batch and fact adapter successfully. Its unresolved visual/table/math
+questions do not have independent references yet, so they do not justify adding
+an upstream metric package. Integration remains conditional on that evidence.
+
 ## Adopted in J: a source-mapped Markdown parser
 
 The local environment already contains `markdown-it-py 4.2.0` (required by Rich)

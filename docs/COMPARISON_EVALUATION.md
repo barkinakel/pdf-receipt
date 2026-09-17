@@ -4,6 +4,9 @@ Milestone I; source review date: 2026-09-16. This is a development evaluation,
 not an additional application command. Its historical plan is in sections 12-16
 of [the ordered plan](TODO.md). Those changes are complete; the development-only
 [fact adapter](COMPARISON_ADAPTER.md) implements the follow-up in section 17.
+The bounded section 18 evaluation is also complete; see
+[supplementary coverage results](COMPARISON_COVERAGE_RESULTS.md) for sources,
+reviewed facts, preserved input hashes and remaining coverage gaps.
 
 ## Which benchmark fits?
 

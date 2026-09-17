@@ -120,4 +120,8 @@ check; whole-paragraph reliability remains covered by earlier regressions.
 
 The local pilot manifest is intentionally ignored and requires the previously
 authorized acquisition; it is not available in a fresh clone. Use the original
-checked-in controls there. Wider natural-document coverage remains separate work.
+checked-in controls there. [Milestone O](COMPARISON_COVERAGE_RESULTS.md) now adds
+reviewed natural multi-page/formula examples and demonstrates the distinction
+between exact sequence facts and contextual hyphen alignment. Turkish, natural
+scan and complete image-package coverage remain open; upstream evaluators are
+still conditional future work.

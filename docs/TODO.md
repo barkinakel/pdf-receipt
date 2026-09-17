@@ -13,7 +13,7 @@ not consume page-specific figure/furniture occurrences.
 
 ## Progress
 
-Current state after the completed offline evaluation adapter milestone N.
+Current state after the completed supplementary coverage evaluation milestone O.
 The integration queue below records potential follow-up work, not an active milestone.
 
 | Milestone | Sections | State |
@@ -33,6 +33,7 @@ The integration queue below records potential follow-up work, not an active mile
 | L: structured comparison JSON | 15 | done |
 | M: batch comparison | 16 | done |
 | N: offline comparison evaluation adapter | 17 | done |
+| O: supplementary real-document coverage | 18 | done, with documented gaps |
 
 Landed for sections 1-7:
 
@@ -704,7 +705,9 @@ preserved; wider corpus acquisition and upstream evaluators remain unstarted.
 Follow-up review (2026-09-17): fixed overlapping repeated ordering anchors being
 mistaken for a unique anchor. Original source/target regression cases failed
 before the fix; count facts retain disjoint semantics. Twelve focused adapter
-tests and full discovery (305 tests OK, seven opt-in skips) passed.
+tests and full discovery (305 tests OK, seven opt-in skips) passed. All twenty
+O facts retain their original results. See the review section in
+[coverage results](COMPARISON_COVERAGE_RESULTS.md).
 
 - Read a versioned local manifest of explicit PDF/Markdown pairs, SHA-256 hashes,
   dataset revision, sample ID, provenance and document terms. Preserve fact IDs
@@ -726,6 +729,48 @@ tests and full discovery (305 tests OK, seven opt-in skips) passed.
 - Preserve existing outputs through exclusive creation; document reproducible
   commands, schema, limitations, focused/full tests and the pilot result.
 
+## 18. Broader real-document coverage (Milestone O)
+
+Completed after explicit bounded network/acquisition approval. See
+[supplementary coverage results](COMPARISON_COVERAGE_RESULTS.md) for pinned
+sources, hashes, visual review, independently selected facts and reproduction.
+Four natural pairs and a separate synthetic OCR control were evaluated. Turkish,
+natural-scan and complete image-package coverage remain explicit gaps.
+
+- Target a small supplementary selection of at most eight real PDF/Markdown
+  pairs, with at most 100 MiB total downloaded material including references and
+  assets. Prefer Turkish text, natural scans, formulas, multiple pages and
+  complete local image packages; record unavailable categories honestly.
+- Review candidate source terms and exact endpoint/page correspondence before
+  acquisition. Record URLs, pinned revisions, sample IDs, hashes, provenance and
+  terms. Prefer existing predictions; do not install or run another converter.
+- Keep all acquired material ignored. Do not upload repository or user document
+  contents. No models, packages or upstream evaluation runner are required.
+- Specify a few independently reviewed facts before interpreting comparator
+  output. Use N's adapter where its semantics apply; leave visual/table/math
+  semantics unresolved rather than translating them into misleading text facts.
+- Visually review selected source pages, separate source-layer problems from
+  conversion differences, and include retained as well as missing facts.
+  Source facts on textless pages must remain unverified; target-only facts are
+  not OCR accuracy evidence.
+- Preserve hashes and previous pilot inputs. Document commands, selected facts,
+  observed errors, unresolved findings and coverage gaps. No aggregate accuracy
+  claim and no benchmark numbers in either README.
+- Convert any confirmed product regression into a small original reproduction
+  before proposing a separately scoped implementation change. This milestone
+  evaluates coverage; it does not implicitly add metrics or dependencies.
+
+Local inventory: the existing pilot contains twelve single-page pairs; original
+fixtures cover controlled Turkish/scanned/formula cases, not natural coverage.
+The local NIST source has no corresponding Markdown in this workspace. Temporary
+commit-validation fixture copies are not additional independent samples.
+
+Outcome: selected missing diagram/formula text was confirmed; a failed exact
+sequence fact was traced to source line-end hyphenation, while alignment joined
+the occurrence correctly. Textless source evidence remained unverified. No new
+product regression or dependency was justified. The bounded evaluation is done;
+additional coverage or implementation needs a separately requested scope.
+
 ## Integration queue after the current comparison milestones
 
 This queue records justified candidates; it does not start another milestone
@@ -742,7 +787,7 @@ or authorize package/corpus downloads. See `docs/COMPARISON_INTEGRATIONS.md`.
    upstream-comparable scores exist. Prove Windows/offline installation first.
    Do not add a second converter, remote judge or default benchmark downloads.
 
-Milestones K-N are complete. Remaining candidates require a separately requested
+Milestones K-O are complete. Remaining candidates require a separately requested
 implementation scope; they do not start automatically.
 
 ## Deferred: merged-cell HTML tables
@@ -775,6 +820,7 @@ the entire open-ended backlog:
 12. Milestone L: structured comparison JSON (section 15)
 13. Milestone M: batch comparison (section 16)
 14. Milestone N: offline fact evaluation adapter (section 17)
+15. Milestone O: broader real-document coverage (section 18)
 
 Within each run, the agent should inspect the relevant code first, add failing
 tests for the contract, implement the smallest cohesive change, run focused and
