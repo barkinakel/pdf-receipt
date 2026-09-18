@@ -791,6 +791,13 @@ remain below the approved ceiling. The source has an OCR layer, so natural scans
 without text and broader scan diversity remain gaps. No product change was
 justified; see the natural-scan section of the coverage report.
 
+Final public-example follow-up: the 1898 national military park booklet is the
+eighth acquired pair. Six selected text facts passed and two exposed a shared
+OCR error. Its sparse PDF text layer cannot independently verify the larger OCR
+target or table semantics. The original pair ceiling is exhausted; further
+acquisition requires new approval. Reports and limitations are documented in
+the final coverage-results section. No code change or integration was justified.
+
 ## Integration queue after the current comparison milestones
 
 This queue records justified candidates; it does not start another milestone

@@ -408,3 +408,61 @@ is consistent with its documented endpoint-evidence contract. Keep the warnings
 and selected visual checks; do not introduce an OCR-accuracy score or install a
 second converter. One pair slot remains within the original ceiling. Further
 acquisition should answer a new coverage question, not merely increase the count.
+
+## User-selected public example: national military park booklet
+
+The subsequent request for any usable public document selected **The Gettysburg
+national military park** (1898), archive identifier `gettysburgnation00unit`.
+The [Commons description](https://commons.wikimedia.org/wiki/File:The_Gettysburg_national_military_park_(IA_gettysburgnation00unit).pdf)
+records its public-domain status and Library of Congress provenance. The PDF
+and existing OCR text were downloaded from `https://archive.org/download/` +
+identifier + `/` + the filenames below. No converter was run; the `.md` endpoint
+is a byte-identical copy of the existing `_djvu.txt`, not formatted Markdown.
+
+| Input | SHA-256 |
+| --- | --- |
+| `gettysburgnation00unit.pdf` | `1e863847baa778aa085c733cfb72b1b8606e00ef974462ee9c083a417a8e5464` |
+| `gettysburgnation00unit_djvu.txt` / local `gettysburgnation00unit.md` | `a97e432c868b1c902db1aac95c9301486315b81852222be8bcebf9b46a44ed19` |
+
+The current archive PDF bytes differ from the older Commons file metadata;
+the Commons page supplies provenance/rights context, not a checksum guarantee.
+The local hashes above pin the actual evaluated endpoints. The PDF contains
+30 physical pages. Pages 3, 9 and 15 were visually inspected before comparison;
+page 5 was inspected subsequently to confirm the repeated title-page assumption.
+That assumption was initially based on the endpoint text, so its repetition
+count is a reviewed endpoint fact rather than an independently preselected
+visual count. It was not revised after seeing the results.
+
+`park-facts.json` records four sequence checks on both endpoints. The subtitle
+appears once on source page 3 and twice in the full target. The union-troops and
+Connecticut-artillery headings on page 9 are retained. The cover's phrase ending
+in the printed word `Tablets` fails on both endpoints: OCR produces a split and
+incorrect `1 ablets`. Six checks pass and two fail. The two failures describe
+one shared OCR error, not two independent conversion failures. Heading checks
+do not validate table rows, column association, or individual numeric cells.
+
+The comparison reports 1,043 source tokens versus 4,822 target tokens, with
+295 matches, six deletions, 3,785 additions, three substitutions and 739 suspected
+movements. Many source pages expose only a short heading despite visibly dense
+tables. The sparse PDF OCR layer therefore provides incomplete evidence; these
+additions cannot automatically be called hallucinations or improvements. Table
+linearization and the remaining occurrences were not fully adjudicated. Physical
+pages 2, 4, 8, 27, 28 and 29 remain unverified for lack of comparable source text.
+
+Reports are `park-report.md`, `park-report.json` and `park-evaluation.json` under
+the ignored coverage directory. Reproduce with fresh report paths:
+
+```powershell
+.venv\Scripts\python.exe development/evaluate_comparison.py pdfmd_output/comparison_evaluation/coverage_o/park-facts.json --report pdfmd_output/comparison_evaluation/coverage_o/park-evaluation-rerun.json
+.\pdf-receipt.bat compare pdfmd_output/comparison_evaluation/coverage_o/upstream/archive/gettysburgnation00unit.pdf pdfmd_output/comparison_evaluation/coverage_o/upstream/archive/gettysburgnation00unit.md --report pdfmd_output/comparison_evaluation/coverage_o/park-report-rerun.md --json-report pdfmd_output/comparison_evaluation/coverage_o/park-report-rerun.json
+```
+
+Settings remain `unicode`, 50 displayed groups and complete JSON evidence. Input
+hashes were verified before and after fact evaluation; all 57 files in the
+cumulative acquisition ledger still match their hashes. Saved acquisition totals
+24,438,901 bytes. This is the eighth pair: the original pair ceiling is now
+exhausted. Further acquisition requires new scope/approval. No product code was
+changed or new defect confirmed, so the full suite was not repeated (last run:
+305 tests OK, seven opt-in skips). Documentation diff checks passed. Remaining
+limits include unverified table semantics, correlated OCR errors and lack of a
+complete independent transcription. No new integration is justified by this case.
